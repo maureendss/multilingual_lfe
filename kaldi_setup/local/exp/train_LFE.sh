@@ -44,10 +44,6 @@ ivector_dim=150
 
 set -e # exit on error
 
-if [ $pitch == "true" ]; then
-    feats_suffix=${feats_suffix}_pitch
-fi
-
 
 
 
