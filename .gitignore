@@ -1,0 +1,5 @@
+#all files in local are for training
+/local
+
+/data/*/wavs
+/data/*/wavs-chi
