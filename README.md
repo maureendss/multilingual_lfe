@@ -1,11 +1,17 @@
-# LID
+# Language Familiarity Effect (LFE)
 
-Language IDentification system
-- Insipred from Carbajal's Experiment 6 in the modeling chapter
-
+- Inspired from Thorburn et al (2019)
 
 
-## Replicating Results from de Seyssel & Dupoux, 2020
+
+## How To 
+
+### Data Preparation
+
+* Prepares data from any language in the LibriVox database. 
+
+
+### Prepare Interface
 
 1. Fill out the `kaldi_setup/cmd.sh` and `kaldi_setup/path.sh` accordingly with your setup.
 
@@ -30,4 +36,6 @@ Language IDentification system
 
 --------------------
 
-[de Seyssel, M. & Dupoux, E. (2020). Does bilingual input hurt? A simulation of language discrimination and clustering using i-vectors. In *Proceedings for the Annual Meeting of the Cognitive Science Society 2020*](https://cognitivesciencesociety.org/cogsci20/papers/0683/0683.pdf)
+##References
+
+[Thorburn, Craig A., Naomi H. Feldman, and Thomas Schatz. "A quantitative model of the language familiarity effect in infancy." *Proceedings of the Conference on Cognitive Computational Neuroscience*. 2019.](https://www.semanticscholar.org/paper/A-quantitative-model-of-the-language-familiarity-in-Thorburn-Feldman/120328aabaa4570ea6dc6278d537671c7b2d30c7?p2df)
