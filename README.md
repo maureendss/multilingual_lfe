@@ -44,7 +44,7 @@ Check the lang codes in https://wals.info/languoid
 
 Then if you want to create a csv array with the matrices:
 
-`python lang2vec/get_distances.py distance --csv_name lang2vec/distances/phonological.csv --distance_type phonological --lang_list "eng deu fin mnd fra ita rus spa"`
+`python lang2vec_local/get_distances.py distance --csv_name lang2vec/distances/phonological.csv --distance_type phonological --lang_list "eng deu fin mnd fra ita rus spa"`
 
 ### Data Preparation
 
