@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-
+echo "starting"
 . ./cmd.sh
 . ./path.sh
 . utils/parse_options.sh
