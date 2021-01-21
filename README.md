@@ -75,9 +75,9 @@ done
 5. Run local/exp/train_LFE.sh
    *e.g.* : `./local/exp/train_LFE.sh --train_set train_finnish_10h10spk --test_set test_finnish_4h10spk`
 
-6. Run the ABX tests : `cd ../abx/ && ./run_by_spk.sh EMIME-controlled`
+6. Run the ABX tests : `cd ../abx/ && bash run_on_x_by_y.sh lfe spk lang`
 
-7. Retrieve the scores : `./retrieve_scores.sh EMIME-controlled > EMIME-controlled.byspk.scores.txt
+7. Retrieve the scores : ` ./retrieve_scores.sh lfe abx_on_spk_by_lang.avg`
 
 *Note : Results are prone to minor changes due to the randomness in computing MFCC features*
 

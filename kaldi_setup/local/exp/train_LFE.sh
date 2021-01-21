@@ -81,9 +81,9 @@ if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
             steps/compute_vad_decision.sh --cmd "$train_cmd" ${data}/${x}"${feats_suffix}"
         fi
 
-        echo "pitch $pitch" >> ${data}/${x}"${feats_suffix}"feat_opts
-        echo "cmvn $cmvn" >> ${data}/${x}"${feats_suffix}"feat_opts
-        echo "vad $vad" >> ${data}/${x}"${feats_suffix}"feat_opts
+        echo "pitch $pitch" >> ${data}/${x}"${feats_suffix}"/feat_opts
+        echo "cmvn $cmvn" >> ${data}/${x}"${feats_suffix}"/feat_opts
+        echo "vad $vad" >> ${data}/${x}"${feats_suffix}"/feat_opts
 
 
         utils/validate_data_dir.sh --no-text ${data}/${x}"${feats_suffix}"

@@ -3,8 +3,8 @@
 set -e # exit on error
 
 if [ $# != 3 ]; then
-   echo "usage: ./run_byspk.sh <abx_dir>"
-   echo "e.g.:  ./run.sh EMIME"
+   echo "usage: ./run_on_x_by_y.sh <abx_dir> <on_value> <by_value>"
+   echo "e.g.:  ./run.sh lfe spk lang"
    exit 1;
 fi
 

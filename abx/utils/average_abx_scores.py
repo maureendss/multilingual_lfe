@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python 
 
 
@@ -25,7 +26,8 @@ if args.categ_list:
                     total += float(l.split()[-1])
             if total!=0:
                 # print(cat, num/total)
-                print(cat, num/total*100)            
+                final = 1 - (num/total)
+                print(cat, final)            
 
                 
 else:     
@@ -37,5 +39,6 @@ else:
             num += float(l.split()[-2])*float(l.split()[-1])
             total += float(l.split()[-1])
 
-
-    print(num / total)
+    # final = num/total
+    final = num/total
+    print(1-final)
