@@ -44,6 +44,12 @@ ggplot(d_sig, aes(x=lfe, y=value, color=variable)) +geom_point() + geom_smooth()
   ggplot(d_sig, aes(lfe,value,color=variable)) + 
     geom_point() +
     facet_wrap(~variable)  + stat_smooth(method="lm",aes(fill=variable)) 
+  
+  d2 <- melt(df, id.vars=c("langpair","lfe","significant"),measure.vars = c("same","different"))
+  res <- wilcox.test(value ~ variable, data = d2, paired = TRUE, alternative="less") #less because here we use the ABX error rate
+  
+  
+  
   #--------- tests
   
   library(coin)

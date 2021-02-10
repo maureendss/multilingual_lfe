@@ -12,6 +12,10 @@ shhh(library(ggpubr))
 shhh(library(rstatix))
 
 shhh(library(BSDA))
+shhh(library(coin))
+library(reshape2)
+library(forcats)
+
 
 #do on all possible speaker pair. 
 args = commandArgs(trailingOnly=TRUE)
@@ -24,8 +28,8 @@ lang_A=args[1]
 lang_B=args[2]
 print(args)
 
-# lang_A="French"
-# lang_B="Finnish"
+#lang_A="French"
+#lang_B="Finnish"
 
 same_a=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
 same_b=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
@@ -43,7 +47,7 @@ different_df=different_csv
 
 
 df=merge(same_df, different_df, by=c("spk_1", "spk_2", "by", "n"), suffixes=c(".same",".different"))
-
+df$id=apply(df[,1:2],1,function(x){paste(x,collapse = "-")})
 
 #---------------------------------------------------------------------------
 #If we want to have speaker pair rather than asymmetric. But shouldn't do it to get same scores as in aBX.
@@ -75,29 +79,6 @@ print(paste('The p.value for the z-test is',zresult$p.value))
 
 #--------------------------------------------
 
-#pairwise paired t test
-x=c(df$score.same, df$score.different)
-y=c(replicate(length(df$score.same), 'same'), replicate(length(df$score.different), 'different'))
-
-
-# ggplot(df, aes(x =y, y = x, color = condition)) +
-#   geom_boxplot() +
-#   geom_jitter() +
-#   scale_color_brewer(type = "qual", palette = 2) +
-#   theme_minimal() +
-#   theme(legend.position = "none")
-# 
-
-
-
-pwc = pairwise.t.test(
-  x,y, paired=TRUE,
-  p.adjust.method = "bonferroni", alternative="greater")
-
-print(paste('The p.value for the one-tailed pairwise paired t-test is',pwc$p.value))
-
-#--------------------------------------------
-
 #paired t-test
 ttestresult=t.test(df$score.same, df$score.different, paired = TRUE, alternative = "two.sided")
 
@@ -106,6 +87,29 @@ print(paste('The p.value for the two-tailed paired t-test is',ttestresult$p.valu
 
 ttestresult_onetailed=t.test(df$score.same, df$score.different, paired = TRUE, alternative = "greater")
 print(paste('The p.value for the one-tailed paired t-test is',ttestresult_onetailed$p.value))
+
+
+# PERMUTATION TEST : Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling
+
+d2 <- reshape2::melt(df, id.vars=c("id", "n"),measure.vars = c("score.same","score.different"))
+d2$variable = as_factor(d2$variable)
+d2$id = as_factor(d2$id)
+
+
+res=oneway_test(value ~ variable | id,
+                data = d2, alternative="greater", distribution="approximate"(nresample=9999))
+print(paste('The p.value for the one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
+
+res=oneway_test(value ~ variable | id,
+                data = d2, alternative="greater", distribution="approximate"(nresample=9999))
+print(paste('The p.value for the one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and weighted is',pvalue(res)))
+
+
+#If want asymptotic : 
+res=oneway_test(value ~ variable | id,
+                data = d2, alternative="greater")
+
+#Can weigh per weight
 
 #--------------------------------------------
 

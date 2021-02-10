@@ -4,57 +4,14 @@ library(distributions3)
 library(tidyverse)
 library(ggpubr)
 library(rstatix)
-
+library(BSDA)
 library(data.table)
-
-lfe_detailed <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_detailed.csv")
-lfe_all <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all.csv")
-#In this file, we do overall per langpair. Eg we compare multiple lang pairs. We don't care about Ns. '
-
-same=lfe_all[,'same']
-different=lfe_all[,'different']
-
-#Frol https://cran.r-project.org/web/packages/distributions3/vignettes/two-sample-z-test.html
-qqnorm(same)
-qqline(same)
-
-test_results <- data.frame(
-  score = c(same, different),
-  condition = c(
-    rep("same", length(same)),
-    rep("different", length(different))
-  )
-)
-
-# ggplot(test_results, aes(x = factor(condition, level=c('same','different')), y = score, color = condition)) +
-#   geom_boxplot() +
-#   geom_jitter() +
-#   stat_summary(fun.y="mean", color='black') +
-#   stat_summary(fun.y=mean, colour="red", geom="text", 
-#                  vjust=-0.7, aes( label=round(..y.., digits=1)))
-#   scale_color_brewer(type = "qual", palette = 2) +
-#   theme_minimal() +
-#   theme(legend.position = "none")
-
-  ggplot(test_results, aes(x = factor(condition, level=c('same','different')), y = score, color = condition)) +
-    geom_boxplot() +
-    geom_jitter() +
-    stat_summary(fun.y="mean", color='black') +
-  scale_color_brewer(type = "qual", palette = 2) +
-    theme_minimal() +
-    theme(legend.position = "none")
-
-
-  
-df=data.frame(same,different)
-ggpaired(df, cond1="same", cond2= "different",
-         ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05)
 
 
 #do on all possible speaker pair. 
 args = commandArgs(trailingOnly=TRUE)
 
-if (length(args)<22) {
+if (length(args)<2) {
   stop("At least two languages must be supplied to create all possible combinations", call.=FALSE)
 } 
 args=list("French","English","German","Chinese","Dutch","Finnish","Italian")
@@ -148,7 +105,24 @@ print(paste('The p.value for the one-tailed paired t-test is',ttestresult_onetai
 
 #--------------------------------------------
 
-#Create paired boxplot
-ggpaired(df, cond1="score.same", cond2= "score.different",
-         ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05)
+res <- wilcox.test(df$score.same, df$score.different, paired = TRUE, alternative="greater") #less because here we use the ABX error rate
 
+
+d2 <- reshape2::melt(df, id.vars=c("id", "n"),measure.vars = c("score.same","score.different"))
+d2$variable = as_factor(d2$variable)
+d2$id = as_factor(d2$id)
+
+
+res=oneway_test(value ~ variable | id,
+                data = d2, alternative="greater", distribution="approximate"(nresample=9999))
+print(paste('The p.value for the Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
+
+#with weights:
+# res=oneway_test(value ~ variable | id,
+#                 data = d2, alternative="greater", distribution="approximate"(nresample=9999), weigths=d2$n)
+# print(paste('The p.value for the Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
+# 
+
+#If want asymptotic : 
+  res=oneway_test(value ~ variable | id,
+                  data = d2, alternative="greater")
