@@ -6,6 +6,7 @@ library(ggpubr)
 library(rstatix)
 library(BSDA)
 library(data.table)
+library(coin)
 
 
 #do on all possible speaker pair. 
@@ -14,7 +15,7 @@ args = commandArgs(trailingOnly=TRUE)
 if (length(args)<2) {
   stop("At least two languages must be supplied to create all possible combinations", call.=FALSE)
 } 
-args=list("French","English","German","Chinese","Dutch","Finnish","Italian")
+args=list("French","English","German","Chinese","Dutch","Finnish","Italian", "Russian", "Spanish", "Portuguese")
 
 
 langpairs=combn(args,2,simplify=FALSE)
@@ -113,7 +114,7 @@ d2$variable = as_factor(d2$variable)
 d2$id = as_factor(d2$id)
 
 
-res=oneway_test(value ~ variable | id,
+res=coin::oneway_test(value ~ variable | id,
                 data = d2, alternative="greater", distribution="approximate"(nresample=9999))
 print(paste('The p.value for the Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
 

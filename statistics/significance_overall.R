@@ -25,7 +25,7 @@ if (length(args)==1) {
   print(paste("Filtering on language: ", lang))
 } else {lang=""}
 
-lang="spa"
+# lang="por"
 
 
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all.csv")
@@ -56,7 +56,7 @@ ggplot(test_results, aes(x = factor(condition, level=c('same','different')), y =
 
 
 ggpaired(df, cond1="same", cond2= "different",
-         ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05)
+         ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05) 
 
 res <- wilcox.test(df$same, df$different, paired = TRUE, alternative="less") #less because here we use the ABX error rate
 print(paste('The p.value for the Wilcoxon signed rank exact test is',res$p.value))
