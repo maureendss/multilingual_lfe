@@ -16,8 +16,8 @@ Activate the environment
 Install the last missing modules (ensuring pip is the conda one)
 ```
 pip install h5features
-pip install abx #can't find it - need to see if problematic
 pip install kaldiio
+conda install -c coml abx
 ```
 
 ### Get submodules
