@@ -12,7 +12,7 @@ set -e # exit on error
 
 if [ $# != 3 ]; then
    echo "usage: local/data_prep/prepare_librivox.sh <lb_processed_directory> <target_data_dir> |LANG|"
-   echo "e.g.:  local/data/prep/prepare_librivox.sh ~/data/speech/librivox/english/processed/LFE/10h_4spk ENG"
+   echo "e.g.:  local/data/prep/prepare_librivox.sh ~/data/speech/librivox/english/processed/LFE/10h_4spk data/librivox/xxxxxx ENG"
    exit 1;
 fi
 

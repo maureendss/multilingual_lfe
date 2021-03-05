@@ -7,7 +7,7 @@ mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attem
 stage=0
 grad=true
 nj=40
-nj_train=4
+nj_train=10
 data=data/librispeech
 
 pitch=true

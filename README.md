@@ -8,8 +8,19 @@
 
 Prepare conda environment and activate it. 
 (use requirements.txt)
+`conda create --name lfe --file requirements.txt`
 
-### GEt submodules
+Activate the environment
+`conda activate lfe`
+
+Install the last missing modules (ensuring pip is the conda one)
+```
+pip install h5features
+pip install kaldiio
+conda install -c coml abx
+```
+
+### Get submodules
 
 ```
 git submodule init
