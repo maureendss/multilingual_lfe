@@ -30,7 +30,8 @@ csv="data_on_spk_by_lang.csv"
 #-----------------------------------------------------------------------------------------------
 #H
 lang_A="en"
-lang_B="it"
+lang_B="fr"
+langpair=paste(lang_A,"+",lang_B)
 trA_tsA=paste(path, "ivector_128_tr-",lang_A,"_train-15h-60spk_ts-",lang_A,"_test-0h-20spk/", csv, sep="")
 trB_tsB=paste(path, "ivector_128_tr-",lang_B,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep="")
 trA_tsB=paste(path, "ivector_128_tr-",lang_A,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep="")
@@ -38,6 +39,8 @@ trB_tsA=paste(path, "ivector_128_tr-",lang_B,"_train-15h-60spk_ts-",lang_A,"_tes
 
 same_df <- rbind(read.csv(trA_tsA, sep='\t'), read.csv(trB_tsB, sep='\t'))
 different_df<- rbind(read.csv(trA_tsB, sep='\t'), read.csv(trB_tsA, sep='\t'))
+#mix_df <- rbind(read.csv(mix1_tsA, sep='\t'), read.csv(mix2_tsA, sep='\t'),read.csv(mix1_tsB, sep='\t'),read.csv(mix2_tsB, sep='\t') )
+
 #-----------------------------------------------------------------------------------------------
 
 
@@ -49,7 +52,7 @@ if (sum(same_df$n) != sum(different_df$n)) {
 d2 <- reshape2::melt(df, id.vars=c("id", "n"),measure.vars = c("score.same","score.different"))
 d2$variable = as_factor(d2$variable)
 d2$id = as_factor(d2$id)
-d2$value_normalised = ( d2$value) * 100
+d2$value_normalised = 100- ( d2$value) * 100
 
 
 
@@ -59,7 +62,7 @@ res=oneway_test(value ~ variable | id,
                 data = d2, distribution="approximate"(nresample=9999))
 print(paste('The p.value for langpair', langpair, ' for the Two-Way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
 res=oneway_test(value ~ variable | id,
-                data = d2,  distribution="approximate"(nresample=9999), weigts= n ~ cond)
+                data = d2,  distribution="approximate"(nresample=99), weights=~n)
 print(paste('The p.value for langpair', langpair, ' for the two-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and weighted is',pvalue(res)))
 
 diff=mean(c(100-weighted.mean(df[df$by==lang_A,"score.different"],df[df$by==lang_A,"n"])*100, 100-weighted.mean(df[df$by==lang_B,"score.different"],df[df$by==lang_B,"n"])*100))
@@ -131,7 +134,6 @@ means$score_normalised = means$score*100
 ggplot(df, aes(x =cond, y = score_normalised, fill=cond)) +
   geom_boxplot(outlier.colour="black", outlier.shape=16,
                outlier.size=2, notch=TRUE) +
-  geom_jitter(colour="grey", size=0.5, shape=4) +
   ggtitle (paste("Speaker Discrimination scores \nfor language pair", langpair)) +
   scale_fill_brewer(palette="Pastel1") +
   geom_text(data = means, aes(label = paste("M =",round(score_normalised, 2)), y = score_normalised + 6), color="darkred", fontface = "bold")
@@ -164,15 +166,20 @@ res = oneway_test(score ~ cond | id , data=d,
                   distribution=approximate(nresample=9999))
 
 #TODO : ADD WEIGTHS
-print(paste('The p.value for langpair', langpair, 'between conditions',condA,"and",condB,'for the PAIRED two-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and weighted is',pvalue(res)))
+print(paste('The p.value for langpair', langpair, 'between conditions',condA,"and",condB,'for the PAIRED two-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling  is',pvalue(res)))
 
+#BELOW FOR PAIRED DATA ONLY (So only SAME AND DIFF BASICALLY as same pp)
+d$id=as_factor(d$id)
+res3 = oneway_test(score ~ cond | id , data=d,
+                  distribution=approximate(nresample=99), weights= ~ n)
 
+print(paste('The p.value for langpair', langpair, 'between conditions',condA,"and",condB,'for the PAIRED two-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and WEIGHTEDis',pvalue(res3)))
 
 #------------------- TRIAL --------------------------------------------
 #All test finnish
 
 #--------------------------
-lang_C="fr"
+lang_C="it"
 
 mono_same_df <- rbind(read.csv(paste(path, "ivector_128_tr-",lang_B,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep=""), sep='\t'))
 mono_diff_df <- rbind(read.csv(paste(path, "ivector_128_tr-",lang_C,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep=""), sep='\t'))
@@ -201,7 +208,7 @@ means$score_normalised = means$score*100
 
 ggplot(df, aes(x =cond, y = score_normalised, fill=cond)) +
   geom_boxplot(outlier.colour="black", outlier.shape=16,
-               outlier.size=2, notch=FALSE) +
+               outlier.size=2, notch=TRUE) +
   geom_jitter(colour="grey", size=0.5, shape=4) +
   ggtitle (paste("Speaker Discrimination scores on test set ", lang_C)) +
   scale_fill_brewer(palette="Pastel1") +

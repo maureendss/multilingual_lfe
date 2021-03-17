@@ -102,7 +102,7 @@ res=oneway_test(value ~ variable | id,
                 data = d2, distribution="approximate"(nresample=9999))
 print(paste('The p.value for langpair', langpair, ' for the Two-Way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
 res=oneway_test(value ~ variable | id,
-                data = d2,  distribution="approximate"(nresample=9999), weigts= n ~ cond)
+                data = d2,  distribution="approximate"(nresample=9999), weights= n ~ cond)
 print(paste('The p.value for langpair', langpair, ' for the two-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and weighted is',pvalue(res)))
 
 diff=mean(c(100-weighted.mean(df[df$by==lang_A,"score.different"],df[df$by==lang_A,"n"])*100, 100-weighted.mean(df[df$by==lang_B,"score.different"],df[df$by==lang_B,"n"])*100))
@@ -255,7 +255,17 @@ ggplot(df, aes(x =cond, y = score_normalised, fill=cond)) +
   geom_text(data = means, aes(label = paste("M =",round(score_normalised, 2)), y = score_normalised + 6), color="darkred", fontface = "bold")
 # If want gray colors :   scale_fill_grey(start=0.9, end=0.6) + theme_classic() +
   #stat_summary(fun=mean, geom="point", shape=20, size=6, color="darkred", fill="red") +
-    
+
+
+# ------------ HERE IS COOL ONE ----------------------------------
+compare_means(score_normalised ~ cond, data = df, paired = FALSE)
+my_comparisons <- list( c("mono_same", "mono_different"), c("mono_different", "bil"), c("mono_different", "mix") )
+ggboxplot(df, x = "cond", y = "score_normalised", notch=TRUE,
+         color = "cond", line.color = "gray", line.size = 0.02,
+         palette = "jco", legend="none",
+         ylab="ABX score (in %)", xlab="")+
+  stat_compare_means(paired = FALSE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
+# +ggtitle(waiver(), subtitle = paste(dataset, "dataset"))
 
 #================================================================================================================================
 #Tests of comparisons (unpaired)

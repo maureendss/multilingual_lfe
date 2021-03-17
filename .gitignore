@@ -5,3 +5,4 @@
 /data/*/wavs-chi
 .R*
 kaldi_setup/path.sh
+.Rproj.user
