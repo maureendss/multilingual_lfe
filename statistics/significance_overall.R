@@ -32,6 +32,8 @@ df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all.csv")
 dataset="Librivox"
 
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_cv.csv")
+df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_cv_highdim.csv")
+
 dataset="CommonVoice"
 
 df <- df[grep(lang, df$langpair),]
