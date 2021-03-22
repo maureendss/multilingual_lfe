@@ -624,7 +624,7 @@ ggboxplot(df_filtered, x = "cond", y = "score_normalised", notch=FALSE,
   ggtitle ("Speaker Discrimination scores on different averaged conditions", subtitle="EN, FR and IT (and all mix combinations)") 
   
 
-ggbarplot(df_filtered, x = "cond", y = "score_normalised", merge=TRUE,
+ggbarplot(df, x = "cond", y = "score_normalised", merge=TRUE,
           color = "cond", line.color = "gray", line.size = 0.02,
           palette = "jco", legend="none",
           ylab="ABX score (in %)", xlab="")+
@@ -634,3 +634,12 @@ ggbarplot(df_filtered, x = "cond", y = "score_normalised", merge=TRUE,
 
 my_comparisons <- list( c("mono_same", "mono_different"), c("mono_same", "mix"), c("mono_different", "mix") )
 compare_means(score_normalised ~ cond, data = df_filtered, paired = FALSE, method = "t.test" )
+
+
+
+
+#================================================================================================
+#================================================================================================
+#C. On UNFAMILIAR DatA. Librivox
+#================================================================================================
+#================================================================================================

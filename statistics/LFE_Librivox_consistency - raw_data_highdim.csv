@@ -1,0 +1,25 @@
+langpair,train,test,subtrain,subtrain (diff),same,different,LFE
+eng-fra,eng,fra,eng-1,fra-1,9.048,7.216,-20.243
+eng-fra,eng,fra,eng-1,fra-2,8.55,7.216,-15.596
+eng-fra,eng,fra,eng-1,fra-3,14.071,7.216,-48.715
+eng-fra,eng,fra,eng-2,fra-1,9.048,15.503,71.347
+eng-fra,eng,fra,eng-2,fra-2,8.55,15.503,81.331
+eng-fra,eng,fra,eng-2,fra-3,14.071,15.503,10.178
+eng-fra,eng,fra,eng-3,fra-1,9.048,16.109,78.047
+eng-fra,eng,fra,eng-3,fra-2,8.55,16.109,88.42
+eng-fra,eng,fra,eng-3,fra-3,14.071,16.109,14.486
+eng-fra,eng,fra,eng-4,fra-1,9.048,14.251,57.505
+eng-fra,eng,fra,eng-4,fra-2,8.55,14.251,66.681
+eng-fra,eng,fra,eng-4,fra-3,14.071,14.251,1.277
+eng-fra,fra,eng,fra-1,eng-1,9.834,10.648,8.275
+eng-fra,fra,eng,fra-1,eng-2,16.676,10.648,-36.146
+eng-fra,fra,eng,fra-1,eng-3,18.479,10.648,-42.376
+eng-fra,fra,eng,fra-1,eng-4,18.373,10.648,-42.045
+eng-fra,fra,eng,fra-2,eng-1,9.834,15.216,54.721
+eng-fra,fra,eng,fra-2,eng-2,16.676,15.216,-8.755
+eng-fra,fra,eng,fra-2,eng-3,18.479,15.216,-17.658
+eng-fra,fra,eng,fra-2,eng-4,18.373,15.216,-17.184
+eng-fra,fra,eng,fra-3,eng-1,9.834,20.728,110.767
+eng-fra,fra,eng,fra-3,eng-2,16.676,20.728,24.298
+eng-fra,fra,eng,fra-3,eng-3,18.479,20.728,12.17
+eng-fra,fra,eng,fra-3,eng-4,18.373,20.728,12.814
