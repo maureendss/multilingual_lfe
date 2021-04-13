@@ -9,9 +9,13 @@ library(data.table)
 
 #lfe_detailed <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_detailed.csv")
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all.csv")
+df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_highdim.csv")
+
 dataset="Librivox"
 
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_cv.csv")
+df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_cv_highdim.csv")
+
 dataset="CommonVoice"
 
 #In this file, we do overall per langpair. Eg we compare multiple lang pairs. We don't care about Ns. '
@@ -30,35 +34,32 @@ qqline(same)
 qqnorm(diff)
 qqline(diff)#use waiver() instead of title if no title but subtitle
 
-ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_text(label=df$langpair, nudge_y = +2.5) + ggtitle("Average distance vs LFE in function of language pair", subtitle = paste(dataset, "dataset"))
-ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_smooth(method=lm)
-ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_smooth(method=lm, se=FALSE)
-ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") +geom_smooth()
+# ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_text(label=df$langpair, nudge_y = +2.5) + ggtitle("Average distance vs LFE in function of language pair", subtitle = paste(dataset, "dataset"))
+# ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_smooth(method=lm)
+# ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_smooth(method=lm, se=FALSE)
+# ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") +geom_smooth()
 
 
 #per distance
 d <- melt(df, id.vars=c("langpair","lfe","same","different"),measure.vars = c("phonological","syntaxic","inventory"))
-ggplot(d, aes(x=value, y=lfe, color=variable)) + labs(x = "Average distance", y="LFE")+geom_point() + geom_smooth()
-ggplot(d, aes(x=value, y=lfe, color=variable)) + labs(x = "Average distance", y="LFE")+geom_point() + geom_smooth(method=lm, se=FALSE)
+# ggplot(d, aes(x=value, y=lfe, color=variable)) + labs(x = "Average distance", y="LFE")+geom_point() + geom_smooth()
+# ggplot(d, aes(x=value, y=lfe, color=variable)) + labs(x = "Average distance", y="LFE")+geom_point() + geom_smooth(method=lm, se=FALSE)
 
 
 #Maybe should do on Significant only?
-d <- melt(df, id.vars=c("langpair","lfe","same","different","significant"),measure.vars = c("phono","synt","inv"))
+# d <- melt(df, id.vars=c("langpair","lfe","same","different","significant"),measure.vars = c("phono","synt","inv"))
 #d <- melt(df, id.vars=c("langpair","lfe","same","different"),measure.vars = c("phono","synt","inv"))
 
-d_sig=d[d$significant=="yes",]
-ggplot(d_sig, aes(x=value, y=lfe, color=variable)) +geom_point() + geom_smooth()
+# d_sig=d[d$significant=="yes",]
+# ggplot(d_sig, aes(x=value, y=lfe, color=variable)) +geom_point() + geom_smooth()
 
 
   ggplot(d, aes(value,lfe,color=variable)) + labs(x = "Average distances", y="LFE") + 
-  geom_point() +  ggtitle("Language pair distances vs LFE", subtitle = paste(dataset, "dataset")) +
+  geom_point() +  ggtitle(NULL, subtitle = paste(dataset, "dataset - high-dimension")) + 
   facet_wrap(~variable, scales = "free_x")  + stat_smooth(method="lm",aes(fill=variable)) #remove free if want same x acis dor all
   
   
-  ggplot(d_sig, aes(value,lfe,color=variable)) + labs(x = "Average distances", y="LFE") + 
-    geom_point() +
-    facet_wrap(~variable, scales = "free_x")  + stat_smooth(method="lm",aes(fill=variable)) #remove free if want same x acis dor all
-  
+
   #d2 <- melt(df, id.vars=c("langpair","lfe","significant"),measure.vars = c("same","different"))
   d2 <- melt(df, id.vars=c("langpair","lfe"),measure.vars = c("same","different"))
   
@@ -69,15 +70,15 @@ ggplot(d_sig, aes(x=value, y=lfe, color=variable)) +geom_point() + geom_smooth()
   
   #--------- tests
   
-  library(coin)
-
-  #Just testing permutation
-  #d_sd<- melt(df, id.vars=c("langpair","significant"),measure.vars = c("same","different"))
-  d_sd<- melt(df, id.vars=c("langpair"),measure.vars = c("same","different"))
-  
-  d_sd_sample=d_sd[sample(nrow(d_sd), 40), ]
-  coin::oneway_test(value ~ variable, data=d_sd_sample, distribution="exact")
-  
+  # library(coin)
+  # 
+  # #Just testing permutation
+  # #d_sd<- melt(df, id.vars=c("langpair","significant"),measure.vars = c("same","different"))
+  # d_sd<- melt(df, id.vars=c("langpair"),measure.vars = c("same","different"))
+  # 
+  # d_sd_sample=d_sd[sample(nrow(d_sd), 40), ]
+  # coin::oneway_test(value ~ variable, data=d_sd_sample, distribution="exact")
+  # 
 
   
   library(RVAideMemoire)
