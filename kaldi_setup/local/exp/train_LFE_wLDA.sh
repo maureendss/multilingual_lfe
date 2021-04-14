@@ -227,6 +227,62 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
 fi
 
 
+
+
+# ----------------------------------------------------------------------                                                                                                    
+#Stage 5b: Computing LDA                                                                                                                              
+# ----------------------------------------------------------------------                                                                                                     
+
+if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
+
+    for train in $train_set; do
+
+        ivec_test_dir=${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${test_set}${feats_suffix}
+        logdir_test=${ivec_test_dir}/log
+        
+
+        for x in ${train} ${test_set}; do
+            lda_train_dir=${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${x}${feats_suffix}
+            logdir_lda=${lda_train_dir}/log
+
+            num_spk=$(wc -l ${data}/${x}${feats_suffix}/spk2utt | cut -d' ' -f1)
+            lda_dim=$(($num_spk - 1))
+
+            if [ ! -f ${lda_train_dir}/lda-${lda_dim}.mat ]; then
+
+                echo "Computing lda for ${x} in ${lda_train_dir} with $lda_dim dimensions"
+
+                "$train_cmd"  ${logdir_lda}/compute-lda.log \
+                              ivector-compute-lda --dim=$lda_dim scp:${lda_train_dir}/ivector.scp \
+                              ark:${data}/${x}${feats_suffix}/utt2spk ${lda_train_dir}/lda-${lda_dim}.mat
+            fi
+
+            if [ "${x}" == "${test_set}" ]; then lda_filename="lda-${lda_dim}-test_ivector"; else lda_filename="lda-${lda_dim}-train_ivector"; fi
+
+            if [ ! -f ${ivec_test_dir}/${lda_filename}.scp ]; then
+
+                "$train_cmd"  ${logdir_test}/${lda_filename}/transform-ivectors-train.log \
+                              ivector-transform ${lda_train_dir}/lda-${lda_dim}.mat \
+                              scp:${ivec_test_dir}/ivector.scp \
+                              ark,scp:${ivec_test_dir}/${lda_filename}.ark,${ivec_test_dir}/${lda_filename}.scp;
+            fi
+
+
+            if [ ! -f ${lda_train_dir}/${lda_filename}.scp ]; then
+
+                "$train_cmd"  ${logdir_lda}/${lda_filename}/transform-ivectors-train-lda.log \
+                              ivector-transform ${lda_train_dir}/lda-${lda_dim}.mat \
+                              scp:${lda_train_dir}/ivector.scp \
+                              ark,scp:${lda_train_dir}/${lda_filename}.ark,${lda_train_dir}/${lda_filename}.scp;
+            fi
+        done
+    done
+
+fi
+
+
+
+
 # ----------------------------------------------------------------------
 #Stage 6: Setting up ABX directory for non-LDA I-Vectors AND LDA
 # ----------------------------------------------------------------------
@@ -236,7 +292,7 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ] && [ "$prepar
     for train in $train_set; do
 
         ivec_dir=${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${test_set}${feats_suffix}
-
+        
         #create ivectors.item #TODO ADD SLURM
         if [ ! -f ${ivec_dir}/ivectors.item ]; then
             echo "** Creating ${ivec_dir}/ivectors.item **"
@@ -244,8 +300,13 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ] && [ "$prepar
         fi
  
 
+        num_spk_train=$(wc -l ${data}/${train}${feats_suffix}/spk2utt | cut -d' ' -f1)
+        lda_dim_train=$(($num_spk_train - 1))
+
+        num_spk_test=$(wc -l ${data}/${test_set}${feats_suffix}/spk2utt | cut -d' ' -f1)
+        lda_dim_test=$(($num_spk_test - 1)) 
         
-        for x in ivector; do #changed name from ivectors to ivector in h5f file
+        for x in ivector lda-${lda_dim_test}-test_ivector lda-${lda_dim_train}-train_ivector; do #changed name from ivectors to ivector in h5f file
 
             if [ ! -f ${ivec_dir}/${x}.h5f ]; then
                 echo "** Computing ivectors_to_h5f files for ${ivec_dir}/** for ${x}"
