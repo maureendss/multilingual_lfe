@@ -188,7 +188,7 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
                     #Also creating a mean.vec file, averaging all ivectors.
                     ivector-mean ark:${data}/${iv_type}${feats_suffix}/lang2utt scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/ivector.scp ark:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ark:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_utt_num.ark
 
-                    local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-{iv_type}${feats_suffix}/langdist.txt
+                    local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist.txt
                 else
                     echo "Ivectors in ${ivec_dir} already exist - skipping Ivector Extraction"
                 fi
