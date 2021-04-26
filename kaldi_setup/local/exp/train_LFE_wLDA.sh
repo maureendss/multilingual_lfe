@@ -248,7 +248,7 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
             num_spk=$(wc -l ${data}/${x}${feats_suffix}/spk2utt | cut -d' ' -f1)
             lda_dim=$(($num_spk - 1))
 
-            if [ ! -f ${lda_train_dir}/lda-${lda_dim}.mat ]; then
+            if [ ! -f ${lda_train_dir}/lda-${lda_dim}.mat ] && [ "$x" != "${test_set}" ]; then
 
                 echo "Computing lda for ${x} in ${lda_train_dir} with $lda_dim dimensions"
 
@@ -259,7 +259,7 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
 
             if [ "${x}" == "${test_set}" ]; then lda_filename="lda-${lda_dim}-test_ivector"; else lda_filename="lda-${lda_dim}-train_ivector"; fi
 
-            if [ ! -f ${ivec_test_dir}/${lda_filename}.scp ]; then
+            if [ ! -f ${ivec_test_dir}/${lda_filename}.scp ] && [ -f ${lda_train_dir}/lda-${lda_dim}.mat ]; then
 
                 "$train_cmd"  ${logdir_test}/${lda_filename}/transform-ivectors-train.log \
                               ivector-transform ${lda_train_dir}/lda-${lda_dim}.mat \
@@ -268,7 +268,7 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
             fi
 
 
-            if [ ! -f ${lda_train_dir}/${lda_filename}.scp ]; then
+            if [ ! -f ${lda_train_dir}/${lda_filename}.scp ] && [ -f ${lda_train_dir}/lda-${lda_dim}.mat ]; then
 
                 "$train_cmd"  ${logdir_lda}/${lda_filename}/transform-ivectors-train-lda.log \
                               ivector-transform ${lda_train_dir}/lda-${lda_dim}.mat \

@@ -219,6 +219,9 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
                                                   --deltas ${deltas} --deltas_sdc ${deltas_sdc} \
                                                   ${exp_dir}/ubm"${exp_suffix}"/extractor_full_ubm_${num_gauss}_${train}${feats_suffix} ${data}/${iv_type}${feats_suffix} ${ivec_dir};
                     printf "vad: $vad \n cmvn: $cmvn \n deltas: $deltas \n deltas_sdc: $deltas_sdc" > ${ivec_dir}/feat_opts;
+
+                    #Also creating a mean.vec file, averaging all ivectors.
+                    ivector-mean scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/ivector.scp ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/mean.vec
                 else
                     echo "Ivectors in ${ivec_dir} already exist - skipping Ivector Extraction"
                 fi
