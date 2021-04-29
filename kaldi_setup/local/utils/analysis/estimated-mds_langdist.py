@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 
 import numpy as np
@@ -78,6 +77,7 @@ if __name__ == "__main__":
     else:
         df = pd.DataFrame(dict(x=data_transformed[:,0], y=data_transformed[:,1], label=lang_data, gender=gender_data))
         groups = df.groupby(['label', 'gender'])
+
     fig, ax = plt.subplots()
     ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 
@@ -85,11 +85,13 @@ if __name__ == "__main__":
     
     for name, group in groups:
 
-        ax.plot(group.x, group.y, linestyle='', ms=6, color=col, label=name)
+        # ax.plot(group.x, group.y, marker='o', linestyle='', ms=6, label=name)
+        #ax.plot(group.x, group.y, marker=m, linestyle='', ms=6, color=col, label=name)
+        ax.plot(group.x, group.y,marker='o', linestyle='', ms=6, label=name)
         for xy in zip(group.x, group.y):
-            ax.annotate('(%s, %s)' % xy, xy=xy, textcoords='data') # <--
+            ax.annotate(name, xy=xy, textcoords='data') # <--
         
-        ax.legend(loc='upper right')
+#        ax.get_legend().remove()
     plt.title(args.feats_file)
 
 
@@ -106,5 +108,5 @@ if __name__ == "__main__":
     #SHOULD ALSO DO PER GENDER
     
     # plt.scatter(data_transformed[:,0],data_transformed[:,1]) 
-    plt.savefig(args.output_fig)
+    plt.savefig(args.output_fig, dpi=600)
     plt.clf()
