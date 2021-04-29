@@ -3,7 +3,7 @@
 import numpy as np
 import kaldiio
 from scipy.spatial import distance
-#from sklearn.metrics import pairwise
+from sklearn.metrics import pairwise
 import os, shutil
 import pandas as pd
 import itertools
@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("ivec", help="path to the lang_ivectors.ark file")
     parser.add_argument("out_dist", help="path to the output distance matrix")
+    parser.add_argument("--distance", help="distance to calculate. Either cosine or euclidean. Cosine is cosine similarity.", default='cosine')
     parser.parse_args()
     args, leftovers = parser.parse_known_args()
 
@@ -28,8 +29,16 @@ if __name__ == "__main__":
     pair2dist = {}
     pairs=list(itertools.combinations(lang2vec.keys(), 2))
     for langpair in pairs:
-        cosine_similarity = 1 - distance.cosine(lang2vec[langpair[0]], lang2vec[langpair[1]])
-        pair2dist['-'.join(langpair)] = cosine_similarity
+
+
+        if args.distance == "cosine":
+            score = 1 - distance.cosine(lang2vec[langpair[0]], lang2vec[langpair[1]])
+        elif args.distance == "euclidean":
+            score = distance.euclidean(lang2vec[langpair[0]], lang2vec[langpair[1]])
+
+        else:
+            raise ValueError('Only accepting cosine and euclidean distance')
+        pair2dist['-'.join(langpair)] = score
         #pair2dist['-'.join(langpair[::-1])] = cosine_similarity
         
             
