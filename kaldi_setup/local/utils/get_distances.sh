@@ -6,26 +6,22 @@
 mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
 stage=0
 grad=true
-nj=20 #40 if on oberon
-nj_train=20 # 40 if on oberon
+nj=50
+nj_train=50
 data=data/librispeech
 
 pitch=true
 
-prepare_abx=true
-
 exp_dir=exp_lfe
-abx_dir=../abx/lfe
 
 feats_suffix="" #mainly for vad and cmvn. What directly interacts with features
 exp_suffix="" #redundant with exp_dir? TODO: to change
 
+#languages="German English French Italian Chinese Dutch Finnish Portuguese Spanish"
+train_set="train_all" #can be multiple
 
-train_set="train_italian_10h_10spk" #can be multiple
-test_set="test_italian_4h_10spk" #only one
 
 
-sbatch_req="--account ank@gpu --partition=gpu_p2l --gres=gpu:1 --time=01:00:00 --cpus-per-task=3 --ntasks=1 --nodes=1 --hint=nomultithread"
 
 #feats-spec values . Should not change if want to keep experiments comparable.
 vad=false
@@ -51,49 +47,19 @@ set -e # exit on error
 #Stage 1 : Features Extraction of train sets. 
 # ----------------------------------------------------------------------
 
-if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
-
-
-    
-    mfcc_conf=conf/mfcc.original.conf
-
-    for x in $train_set $test_set; do
-
-        if [ ! -f ${data}/${x}"${feats_suffix}"/feats.scp ]; then
-
-           if [ $pitch == "true" ]; then
-
-              echo "computing features with pitch"
-              steps/make_mfcc_pitch.sh --mfcc-config ${mfcc_conf} --cmd "${train_cmd}" --nj ${nj} ${data}/${x}${feats_suffix}
-
-          else
-            echo "computing features without pitch"
-            steps/make_mfcc.sh --mfcc-config ${mfcc_conf} --cmd "${train_cmd}" --nj ${nj} \
-                               ${data}/${x}"${feats_suffix}"
-          fi
-        fi
-
-        if [ "${cmvn}" == "true" ] && [ ! -f ${data}/${x}"${feats_suffix}"/cmvn.scp ]; then
-            steps/compute_cmvn_stats.sh ${data}/${x}"${feats_suffix}"
-        fi
-
-        if [ "${vad}" == "true" ] && [ ! -f ${data}/${x}"${feats_suffix}"/vad.scp ]; then
-            steps/compute_vad_decision.sh --cmd "$train_cmd" ${data}/${x}"${feats_suffix}"
-        fi
-
-        echo "pitch $pitch" >> ${data}/${x}"${feats_suffix}"/feat_opts
-        echo "cmvn $cmvn" >> ${data}/${x}"${feats_suffix}"/feat_opts
-        echo "vad $vad" >> ${data}/${x}"${feats_suffix}"/feat_opts
-
-
-        utils/validate_data_dir.sh --no-text ${data}/${x}"${feats_suffix}"
-
-    done
-
-fi 
 
 
 
+#1. Combine data
+
+if [ ! -d ${data}/${train_set} ]; then
+   echo "Please use utils/combine_data.sh to combine all data"
+   exit 1
+fi
+
+if [ ! -f ${data}/${train_set}/lang2utt ]; then
+    utils/utt2spk_to_spk2utt.pl ${data}/${train_set}/utt2lang > ${data}/${train_set}/lang2utt ;
+fi
 # ----------------------------------------------------------------------
 #Stage 2 : Diagonal UBM Training
 # ----------------------------------------------------------------------
@@ -105,7 +71,7 @@ if [ $stage -eq 2 ] || [ $stage -lt 2 ] && [ "${grad}" == "true" ]; then
         diag_ubm=${exp_dir}/ubm${exp_suffix}/diag_ubm_${num_gauss}_${train}${feats_suffix}
         if [ ! -f ${diag_ubm}/final.dubm ]; then
             echo "*** Training diag UBM with $train dataset ***"
-            local/lid/train_diag_ubm.sh --cmd "$train_cmd" \
+            local/lid/train_diag_ubm.sh --cmd "$train_cmd --mem 20G" \
                                         --nj ${nj_train} --num-threads 8 \
                                         --parallel_opts "" \
                                         --cmvn ${cmvn} --vad ${vad} \
@@ -118,8 +84,8 @@ if [ $stage -eq 2 ] || [ $stage -lt 2 ] && [ "${grad}" == "true" ]; then
         else
             echo "*** diag UBM with $train dataset already exists - skipping ***"
         fi
-    done
-fi
+    done;
+fi;
 
 
 
@@ -182,7 +148,7 @@ if [ $stage -eq 4 ] || [ $stage -lt 4 ] && [ "${grad}" == "true" ]; then
         if [ ! -f ${extractor}/final.ie ]; then
             echo "Training IVector Extractor for train set ${train}"
             
-            local/lid/train_ivector_extractor.sh --cmd "$train_cmd" \
+            local/lid/train_ivector_extractor.sh --cmd "$train_cmd --mem 60G" \
                                                  --nj ${nj_train} \
                                                  --num-iters 5 --num_processes 1 \
                                                  --ivector_dim ${ivector_dim} \
@@ -206,28 +172,23 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
 
         for train in $train_set; do
 
-            #for iv_type in ${train} ${test_set}; do
-            for iv_type in ${train} ${test_set}; do #only in test becausez no lda
+            for iv_type in ${train}; do #only in test becausez no lda
 
                 ivec_dir=${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}
 
-                numspk=$(wc -l ${data}/${iv_type}${feats_suffix}/spk2utt | cut -d' ' -f1)
-                if [ $nj -gt $numspk ]; then
-                    nj_ivec=$numspk
-                else
-                    nj_ivec=$nj
-                fi
-                
-                if [ ! -f ${ivec_dir}/ivector.scp ]; then
+                    nj_ivec=$(wc -l ${data}/${iv_type}${feats_suffix}/spk2utt | cut -d' ' -f1)
 
-                    local/lid/extract_ivectors.sh --cmd "$train_cmd" --nj "${nj_ivec}" \
+                if [ ! -f ${ivec_dir}/ivector.scp ]; then
+                    local/lid/extract_ivectors.sh --cmd "$train_cmd --mem 40G" --nj "${nj_ivec}" \
                                                   --cmvn ${cmvn} --vad ${vad} \
                                                   --deltas ${deltas} --deltas_sdc ${deltas_sdc} \
                                                   ${exp_dir}/ubm"${exp_suffix}"/extractor_full_ubm_${num_gauss}_${train}${feats_suffix} ${data}/${iv_type}${feats_suffix} ${ivec_dir};
                     printf "vad: $vad \n cmvn: $cmvn \n deltas: $deltas \n deltas_sdc: $deltas_sdc" > ${ivec_dir}/feat_opts;
 
                     #Also creating a mean.vec file, averaging all ivectors.
-                    ivector-mean scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/ivector.scp ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/mean.vec
+                    ivector-mean ark:${data}/${iv_type}${feats_suffix} scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/ivector.scp ark:${exp_dir}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ark:${exp_dir}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-{iv_type}${feats_suffix}/lang_utt_num.ark
+
+                    local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-{iv_type}${feats_suffix}/langdist.txt
                 else
                     echo "Ivectors in ${ivec_dir} already exist - skipping Ivector Extraction"
                 fi
@@ -235,59 +196,3 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
         done
 fi
 
-
-# ----------------------------------------------------------------------
-#Stage 6: Setting up ABX directory for non-LDA I-Vectors AND LDA
-# ----------------------------------------------------------------------
-
-if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ] && [ "$prepare_abx" == "true" ]; then
-
-    for train in $train_set; do
-
-        ivec_dir=${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${test_set}${feats_suffix}
-
-        #create ivectors.item #TODO ADD SLURM
-        if [ ! -f ${ivec_dir}/ivectors.item ]; then
-            echo "** Creating ${ivec_dir}/ivectors.item **"
-            python local/utils/utt2lang_to_item.py --ivector_dim ${ivector_dim} ${data}/${test_set}${feats_suffix} ${ivec_dir}
-        fi
- 
-
-        
-        for x in ivector; do #changed name from ivectors to ivector in h5f file
-
-            if [ ! -f ${ivec_dir}/${x}.h5f ]; then
-                echo "** Computing ivectors_to_h5f files for ${ivec_dir}/** for ${x}"
-                echo " Should be in ${ivec_dir}/${x}.h5f"
-                rm -rf ${ivec_dir}/tmp
-                rm -f ${ivec_dir}/${x}.h5f
-                sbatch $sbatch_req  -o ${ivec_dir}/log/ivec2h5f_${x}.log local/utils/ivectors_to_h5f.py --output_name ${x}.h5f ${ivec_dir}/${x}.scp ${ivec_dir}
-                while [ ! -f ${ivec_dir}/${x}.h5f ]; do sleep 0.5; done
-            else
-                echo "${ivec_dir}/${x}.h5f already exists. Not recreating it"
-            fi
-
-            if [ ! -f ${ivec_dir}/${x}.csv ]; then
-                echo "** Creating ivectors.csv file for for ${ivec_dir}/** for ${x}"
-                sbatch $sbatch_req -o ${ivec_dir}/log/ivec2csv_${x}.log local/utils/ivectors_to_csv.py --output_name ${x}.csv ${ivec_dir}/${x}.scp ${ivec_dir};
-                while [ ! -f ${ivec_dir}/${x}.csv ]; do sleep 0.1; done
-            fi
-            
-
-            #create abx directories
-            path_to_h5f=$(readlink -f ${ivec_dir}/${x}.h5f)
-            path_to_item=$(readlink -f ${ivec_dir}/ivectors.item)
-            path_to_csv=$(readlink -f ${ivec_dir}/${x}.csv)
-            tgt_abx_dir=${abx_dir}${exp_suffix}/${x}_${num_gauss}_tr-${train}${feats_suffix}_ts-${test_set}${feats_suffix}
-
-            echo "** Creating abx directories in ${tgt_abx_dir} **"
-            # rm -f ${tgt_abx_dir}/ivectors.*
-             mkdir -p ${tgt_abx_dir}
-            
-            if [ ! -f ${tgt_abx_dir}/ivectors.h5f ]; then ln -s ${path_to_h5f} ${tgt_abx_dir}/ivectors.h5f; fi
-            if [ ! -f ${tgt_abx_dir}/ivectors.item ]; then ln -s ${path_to_item} ${tgt_abx_dir}/. ; fi
-            if [ ! -f ${tgt_abx_dir}/ivectors.csv ]; then ln -s  ${path_to_csv} ${tgt_abx_dir}/ivectors.csv ; fi
-        done;
-    done;
-        
-fi

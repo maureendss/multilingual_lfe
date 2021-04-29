@@ -24,6 +24,7 @@ exp_suffix="" #redundant with exp_dir? TODO: to change
 train_set="train_italian_10h_10spk" #can be multiple
 test_set="test_italian_4h_10spk" #only one
 
+
 sbatch_req="--account ank@gpu --partition=gpu_p2l --gres=gpu:1 --time=01:00:00 --cpus-per-task=3 --ntasks=1 --nodes=1 --hint=nomultithread"
 
 
@@ -276,7 +277,6 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
                               ark,scp:${lda_train_dir}/${lda_filename}.ark,${lda_train_dir}/${lda_filename}.scp;
             fi
         done
-
     done
 
 fi
@@ -307,6 +307,7 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ] && [ "$prepar
         num_spk_test=$(wc -l ${data}/${test_set}${feats_suffix}/spk2utt | cut -d' ' -f1)
         lda_dim_test=$(($num_spk_test - 1)) 
         
+
         # for x in ivector lda-${lda_dim_test}-test_ivector lda-${lda_dim_train}-train_ivector; do #changed name from ivectors to ivector in h5f file
         for x in ivector lda-${lda_dim_train}-train_ivector; do #changed name from ivectors to ivector in h5f file
 
@@ -315,6 +316,7 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ] && [ "$prepar
                 echo " Should be in ${ivec_dir}/${x}.h5f"
                 rm -rf ${ivec_dir}/tmp
                 rm -f ${ivec_dir}/${x}.h5f
+
                 sbatch $sbatch_req -o ${ivec_dir}/log/ivec2h5f_${x}.log local/utils/ivectors_to_h5f.py --output_name ${x}.h5f ${ivec_dir}/${x}.scp ${ivec_dir}
                 while [ ! -f ${ivec_dir}/${x}.h5f ]; do sleep 0.5; done
             else
@@ -323,6 +325,7 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ] && [ "$prepar
 
             if [ ! -f ${ivec_dir}/${x}.csv ]; then
                 echo "** Creating ivectors.csv file for for ${ivec_dir}/** for ${x}"
+
                 sbatch $sbatch_req -o ${ivec_dir}/log/ivec2csv_${x}.log local/utils/ivectors_to_csv.py --output_name ${x}.csv ${ivec_dir}/${x}.scp ${ivec_dir};
                 while [ ! -f ${ivec_dir}/${x}.csv ]; do sleep 0.1; done
             fi

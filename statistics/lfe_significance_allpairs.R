@@ -17,6 +17,13 @@ if (length(args)<2) {
 } 
 args=list("French","English","German","Chinese","Dutch","Finnish","Italian", "Russian", "Spanish", "Portuguese")
 
+#Below only if CV dataset
+#----------------------------------------------------------------------------------
+path="/home/maureen/work/projects/multilingual_lfe/local/abx/lfe_cv/"
+csv="data_on_spk_by_lang.csv"
+args=list("ca","cy","de","en","fa","fr","it", "kab", "rw")
+#----------------------------------------------------------------------------------
+
 
 langpairs=combn(args,2,simplify=FALSE)
 
@@ -34,10 +41,18 @@ for (x in langpairs){
   print(x[[1]][1])
   
     
-  same_a=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
-  same_b=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
-  diff_a=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
-  diff_b=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+  # same_a=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+  # same_b=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+  # diff_a=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+  # diff_b=paste("/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/ivector_128_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+  # 
+#if CV below -------------
+  
+  same_a=paste(path, "ivector_128_tr-",lang_A,"_train-15h-60spk_ts-",lang_A,"_test-0h-20spk/", csv, sep="")
+  same_b=paste(path, "ivector_128_tr-",lang_B,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep="")
+  diff_a=paste(path, "ivector_128_tr-",lang_A,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep="")
+  diff_b=paste(path, "ivector_128_tr-",lang_B,"_train-15h-60spk_ts-",lang_A,"_test-0h-20spk/", csv, sep="")
+  #---------------------------
   
   same_df <- rbind(read.csv(same_a, sep='\t'), read.csv(same_b, sep='\t'))
   different_df <- rbind(read.csv(diff_a, sep='\t'), read.csv(diff_b, sep='\t'))
@@ -117,6 +132,10 @@ d2$id = as_factor(d2$id)
 res=coin::oneway_test(value ~ variable | id,
                 data = d2, alternative="greater", distribution="approximate"(nresample=9999))
 print(paste('The p.value for the Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
+
+res=coin::oneway_test(value ~ variable | id,
+                      data = d2, alternative="two.sided", distribution="approximate"(nresample=9999))
+print(paste('The p.value for the twosided Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
 
 #with weights:
 # res=oneway_test(value ~ variable | id,
