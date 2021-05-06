@@ -2,8 +2,9 @@
 
 # File for first steps on IVector Experiments
 
-
-mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
+#NOTE : If want low-pass filter, use the mfcc_conf_lp AND pitch_lp.
+mfcc_conf=conf/mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
+pitch_conf=conf/pitch.conf #if want low pass, use pitch_lowpass.conf
 stage=0
 grad=true
 nj=40
@@ -23,8 +24,6 @@ exp_suffix="" #redundant with exp_dir? TODO: to change
 
 train_set="train_italian_10h_10spk" #can be multiple
 test_set="test_italian_4h_10spk" #only one
-
-
 
 
 #feats-spec values . Should not change if want to keep experiments comparable.
@@ -54,8 +53,6 @@ set -e # exit on error
 if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
 
 
-    
-    mfcc_conf=conf/mfcc.original.conf
 
     for x in $train_set $test_set; do
 
@@ -64,11 +61,11 @@ if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
            if [ $pitch == "true" ]; then
 
               echo "computing features with pitch"
-              steps/make_mfcc_pitch.sh --mfcc-config ${mfcc_conf} --cmd "${train_cmd}" --nj ${nj} ${data}/${x}${feats_suffix}
+              steps/make_mfcc_pitch.sh --mfcc-config ${mfcc_conf} --pitch-config ${pitch_conf} --cmd "${train_cmd}" --nj ${nj} ${data}/${x}${feats_suffix}
 
           else
             echo "computing features without pitch"
-            steps/make_mfcc.sh --mfcc-config ${mfcc_conf} --cmd "${train_cmd}" --nj ${nj} \
+            steps/make_mfcc.sh --mfcc-config ${mfcc_conf}  --cmd "${train_cmd}" --nj ${nj} \
                                ${data}/${x}"${feats_suffix}"
           fi
         fi

@@ -2,8 +2,9 @@
 
 # File for first steps on IVector Experiments
 
-
-mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
+#NOTE : If want low-pass filter, use the mfcc_conf_lp AND pitch_lp.
+mfcc_conf=conf/mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
+pitch_conf=conf/pitch.conf
 stage=0
 grad=true
 nj=40
@@ -54,9 +55,6 @@ set -e # exit on error
 if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
 
 
-    
-    mfcc_conf=conf/mfcc.original.conf
-
     for x in $train_set $test_set; do
 
         if [ ! -f ${data}/${x}"${feats_suffix}"/feats.scp ]; then
@@ -64,7 +62,7 @@ if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
            if [ $pitch == "true" ]; then
 
               echo "computing features with pitch"
-              steps/make_mfcc_pitch.sh --mfcc-config ${mfcc_conf} --cmd "${train_cmd}" --nj ${nj} ${data}/${x}${feats_suffix}
+              steps/make_mfcc_pitch.sh --mfcc-config ${mfcc_conf} --pitch-config ${pitch_conf} --cmd "${train_cmd}" --nj ${nj} ${data}/${x}${feats_suffix}
 
           else
             echo "computing features without pitch"
