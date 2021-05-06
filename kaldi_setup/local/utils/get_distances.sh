@@ -2,8 +2,6 @@
 
 # File for first steps on IVector Experiments
 
-
-mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
 stage=0
 grad=true
 nj=50
@@ -185,14 +183,86 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
                                                   ${exp_dir}/ubm"${exp_suffix}"/extractor_full_ubm_${num_gauss}_${train}${feats_suffix} ${data}/${iv_type}${feats_suffix} ${ivec_dir};
                     printf "vad: $vad \n cmvn: $cmvn \n deltas: $deltas \n deltas_sdc: $deltas_sdc" > ${ivec_dir}/feat_opts;
 
-                    #Also creating a mean.vec file, averaging all ivectors.
-                    ivector-mean ark:${data}/${iv_type}${feats_suffix}/lang2utt scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/ivector.scp ark:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ark:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_utt_num.ark
-
-                    local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist.txt
-                else
-                    echo "Ivectors in ${ivec_dir} already exist - skipping Ivector Extraction"
+                    #Also creating a mean.vec file, averaging all ivectors.                                                                                           
+                    ivector-mean ark:${data}/${iv_type}${feats_suffix}/lang2utt scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}\
+_ts-${iv_type}${feats_suffix}/ivector.scp ark,scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang\
+_ivectors.ark,${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.scp ark,scp:${exp_dir}/ive\
+ctors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_utt_num.ark,${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gau\
+ss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_utt_num.scp                                                                                          
+                    local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang\
+_ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist.txt                             
+                                                                                                                                                                      
+                    local/utils/compute_cosine.py --distance euclidean ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type\
+}${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist_euclidean.\
+txt                                                                                                                                                                   
+                else                                                                                                                                                  
+                    echo "Ivectors in ${ivec_dir} already exist - skipping Ivector Extraction"                                                                        
+#                     ivector-mean ark:${data}/${iv_type}${feats_suffix}/lang2utt scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}\
+# _ts-${iv_type}${feats_suffix}/ivector.scp ark,scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang\
+# _ivectors.ark,${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.scp ark,scp:${exp_dir}/ive\
+# ctors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_utt_num.ark,${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gau\
+# ss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_utt_num.scp                                                                                          
+#                     local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang\
+# _ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist.txt                             
+                                                                                                                                                                      
+#                     local/utils/compute_cosine.py --distance euclidean ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type\
+# }${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist_euclidean.\
+# txt                                                                                                                                                               
+                    
+        
+       
                 fi
             done
         done
 fi
+
+
+
+
+
+if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ]; then
+
+    for train in $train_set; do
+
+        x=$train
+        
+        lda_train_dir=${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${x}${feats_suffix}
+        logdir_lda=${lda_train_dir}/log
+
+        #CAlculate number of languages
+        num_lang=$(wc -l ${data}/${x}${feats_suffix}/lang2utt | cut -d' ' -f1)
+        lda_dim=$(($num_lang - 1))   
+
+        if [ ! -f ${lda_train_dir}/lda_lang-${lda_dim}.mat ]; then
+
+            echo "Computing lda for ${x} in ${lda_train_dir} with $lda_dim dimensions"
+
+            "$train_cmd"  ${logdir_lda}/compute-lda.log \
+                          ivector-compute-lda --dim=$lda_dim scp:${lda_train_dir}/ivector.scp \
+                          ark:${data}/${x}${feats_suffix}/utt2spk ${lda_train_dir}/lda_lang-${lda_dim}.mat
+        fi
+
+       lda_filename="lda_lang-${lda_dim}-train_ivector"
+
+
+        if [ ! -f ${lda_train_dir}/${lda_filename}.scp ] && [ -f ${lda_train_dir}/lda_lang-${lda_dim}.mat ]; then
+
+            "$train_cmd"  ${logdir_lda}/${lda_filename}/transform-ivectors-train-lda.log \
+                          ivector-transform ${lda_train_dir}/lda_lang-${lda_dim}.mat \
+                          scp:${lda_train_dir}/ivector.scp \
+                          ark,scp:${lda_train_dir}/${lda_filename}.ark,${lda_train_dir}/${lda_filename}.scp;
+        fi
+
+                           ivector-mean ark:${data}/${iv_type}${feats_suffix}/lang2utt scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/${lda_filename}.scp ark,scp:${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_${lda_filename}.ark,${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/${lda_filename}.scp                                                                                           
+                    local/utils/compute_cosine.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang\
+_${lda_filename}.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lda_langdist.txt                             
+                                                                                                                                                                      
+                    local/utils/compute_cosine.py --distance euclidean ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_${lda_filename}.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lda_langdist_euclidean.txt                                                                                                                                                                   
+        
+    done
+
+fi
+
+
+
 
