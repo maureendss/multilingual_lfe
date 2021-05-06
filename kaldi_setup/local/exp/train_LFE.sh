@@ -3,9 +3,9 @@
 # File for first steps on IVector Experiments
 
 
-#NOTE : If want low-pass filter, use the mfcc_conf_lp AND pitch_lp. 
+#NOTE : If want low-pass filter, use the mfcc_conf_lp AND pitch_lp.
 
-mfcc_conf=conf/mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
+mfcc_conf=conf/mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments.
 pitch_conf=conf/pitch.conf
 stage=0
 grad=true
@@ -29,6 +29,7 @@ test_set="test_italian_4h_10spk" #only one
 
 
 sbatch_req="--account ank@gpu --partition=gpu_p2l --gres=gpu:1 --time=01:00:00 --cpus-per-task=3 --ntasks=1 --nodes=1 --hint=nomultithread"
+#sbatch_req="--mem=1G -n 5" #oberon
 
 #feats-spec values . Should not change if want to keep experiments comparable.
 vad=false
@@ -57,7 +58,7 @@ set -e # exit on error
 if [ $stage -eq 1 ] || [ $stage -lt 1 ] && [ "${grad}" == "true" ]; then
 
 
-    
+
 
     for x in $train_set $test_set; do
 
@@ -219,7 +220,7 @@ if [ $stage -eq 5 ] || [ $stage -lt 5 ] && [ "${grad}" == "true" ]; then
                 else
                     nj_ivec=$nj
                 fi
-                
+
                 if [ ! -f ${ivec_dir}/ivector.scp ]; then
 
                     local/lid/extract_ivectors.sh --cmd "$train_cmd" --nj "${nj_ivec}" \

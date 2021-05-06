@@ -3,7 +3,7 @@
 # File for first steps on IVector Experiments
 
 #NOTE : If want low-pass filter, use the mfcc_conf_lp AND pitch_lp.
-mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments. 
+mfcc_conf=mfcc.original.conf # mfcc configuration file. The "original" one attempts to reproduce the settings in julia's experiments.
 pitch_conf=pitch.conf
 stage=0
 grad=true
@@ -27,7 +27,7 @@ test_set="test_italian_4h_10spk" #only one
 
 
 sbatch_req="--account ank@gpu --partition=gpu_p2l --gres=gpu:1 --time=01:00:00 --cpus-per-task=3 --ntasks=1 --nodes=1 --hint=nomultithread"
-
+sbatch_req="--mem=1G -n 5" #for oberon
 
 #feats-spec values . Should not change if want to keep experiments comparable.
 vad=false
