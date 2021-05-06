@@ -7,7 +7,6 @@ library(rstatix)
 
 library(data.table)
 
-#lfe_detailed <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_detailed.csv")
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all.csv")
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_highdim.csv")
 
