@@ -11,16 +11,15 @@ lb_df <- read.csv("~/work/projects/multilingual_lfe/statistics/lb_distances.csv"
 cv_df <- read.csv("~/work/projects/multilingual_lfe/statistics/cv_distances.csv")
 
 
-
 df=cv_df
 dataset="CommonVoice"
 
-df=lb_df
-dataset="LibriVox"
+#df=lb_df
+#dataset="LibriVox"
 
 #if significant only:
-df = subset(df, hd_sig==1)
-df = subset(df, ld_sig==1)
+#df = subset(df, hd_sig==1)
+#df = subset(df, ld_sig==1)
 
 
 normalize<-function(y) {
@@ -46,9 +45,17 @@ normalize_and_invert<-function(y) {
 }
 
 
+#1. Remove outliers.... Replace them by NA
+df$syntactic = na_if(df$syntactic, 0) #replace by NA the 0 in syntactc
+df$inventory = na_if(df$inventory, 0) 
+
+
+
 
 #df[c("hd_euclidean_norm", "ld_euclidean_norm")] <- lapply(df[c("hd_euclidean", "ld_euclidean" )],normalize)
 df[c("hd_euclidean_norm", "ld_euclidean_norm",  "hd_lda_euclidean_norm")] <- lapply(df[c("hd_euclidean", "ld_euclidean", "hd_lda_euclidean" )],normalize)
+df[c( "hd_lda_euclidean_norm")] <- lapply(df[c("hd_lda_euclidean" )],normalize)
+
 
 df[c("hd_cosine_norm", "ld_cosine_norm" )] <- lapply(df[c("hd_cosine", "ld_cosine" )],normalize_and_invert)
 
@@ -61,11 +68,22 @@ qqnorm(df$hd_cosine_norm)
 qqline(df$hd_cosine_norm)
 
 
+
+ggplot(df, aes(x=hd_lda_euclidean_norm, y=syntactic)) +geom_point() + labs(x = "Euclidean Distance", y="syntactic") +  stat_smooth(method="lm",aes(fill=hd_lda_euclidean_norm))+ ggtitle("Euclidean distance (lda) vs syntax in function of language pair", subtitle = "CV - HD")
+
+
+
 ggplot(df, aes(x=hd_euclidean_norm, y=hd_lfe)) +geom_point() + labs(x = "Euclidean Distance", y="LFE") + geom_text(label=cv_df$langpair, nudge_y = +2.5) + ggtitle("Average Euclidean distance vs LFE in function of language pair", subtitle = "CV - HD")
 ggplot(df, aes(x=hd_lda_euclidean_norm, y=hd_lfe)) +geom_point() + labs(x = "Euclidean Distance", y="LFE") + geom_text(label=cv_df$langpair, nudge_y = +2.5) + ggtitle("Average Euclidean distance WITH LDA vs LFE in function of language pair", subtitle = "CV - HD")
 
 
 ggplot(df, aes(x=hd_lfe, y=hd_euclidean_norm)) +geom_point() + labs(x ="LFE" , y="Euclidean Distance") + geom_text(label=cv_df$langpair, nudge_x = +2.5) + ggtitle("Average distance vs LFE in function of language pair", subtitle = "CV - HD")
+
+
+
+ggplot(df, aes(x=hd_lda_euclidean_norm, y=hd_lfe)) +geom_point() + labs(x = "Euclidean Distance", y="LFE") +  stat_smooth(method="lm",aes(fill=hd_lda_euclidean_norm))+ ggtitle("Euclidean distance (lda) vs LFE in function of language pair", subtitle = "CV - HD")
+ggplot(df, aes(x=hd_lfe, y=hd_lda_euclidean_norm)) +geom_point() + labs(x = "LFE", y="Euclidean Distance") +  stat_smooth(method="lm",aes(fill=hd_lda_euclidean_norm))+ ggtitle("Euclidean distance (lda) vs LFE in function of language pair", subtitle = "CV - HD")
+
 
 # ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_smooth(method=lm)
 # ggplot(df, aes(x=av_dist, y=lfe)) +geom_point() + labs(x = "Average distance", y="LFE") + geom_smooth(method=lm, se=FALSE)
@@ -102,7 +120,7 @@ ggplot(d_euclidean_hd, aes(value,hd_lfe,color=variable)) + labs(x = "Average dis
 
 ggplot(d_centroid_hd, aes(hd_lfe,value,color=variable)) + labs(x = "Average distances", y="LFE") + 
   geom_point() +  ggtitle(NULL, subtitle =  paste(dataset, "dataset - high-dimension")) + 
-  facet_wrap(~variable, scales = "free_x")  + stat_smooth(method="lm",aes(fill=variable)) #remove free if want same x acis dor all
+  facet_wrap(~variable, scales = "free_x")  + #remove free if want same x acis dor all
 
 
 
@@ -163,7 +181,7 @@ perm.cor.test(a, b, nperm = 9999, progress = TRUE)
 
 
 
-y="hd_lp_euclidean"
+y="hd_lda_euclidean"
 
 for (x in names(df[,2:17])){
   

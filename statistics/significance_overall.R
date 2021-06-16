@@ -72,6 +72,8 @@ ggplot(test_results, aes(x = factor(condition, level=c('same','different')), y =
 ggpaired(df, cond1="same", cond2= "different",
          ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05) 
 
+ggpaired(df2, cond1="same", cond2= "different",
+         ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05) 
 
 
 res <- wilcox.test(df$same, df$different, paired = TRUE, alternative="less") #less because here we use the ABX error rate
@@ -91,26 +93,56 @@ df2_reshaped <- reshape2::melt(df2, id.vars=c("langpair","lfe"),measure.vars = c
 # The cool one is below. Careful, not exactky right comparisonbs as here no permutation, ensure that the same sig scores sith permutation? 
 #------------------------------------------------------------------------------------------------------------------
 
+
+
+# ylim(4, 16) for low dim
+# ylim(1,11)
+
+# line.size = 0.02 if want bigger
 compare_means(value ~ variable, data = df_reshaped, paired = TRUE)
 my_comparisons <- list( c("same", "different") )
 plot_lowdim = ggpaired(df_reshaped, x = "variable", y = "value",
-         color = "variable", line.color = "gray", line.size = 0.02,
+         color = "variable", line.color = "gray", line.size = 0.01,
          palette = "jco", legend="none", 
-         ylab="ABX error score (in %)", xlab="", caption="low-dimension models")+ ylim(5, 16) +
+         ylab="ABX error score (in %)", xlab="", caption="low-dimension models")+ ylim(1, 11) +
   stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
 
 compare_means(value ~ variable, data = df2_reshaped, paired = TRUE)
 my_comparisons <- list( c("same", "different") )
 plot_highdim = ggpaired(df2_reshaped, x = "variable", y = "value",
-                       color = "variable", line.color = "gray", line.size = 0.02,
+                       color = "variable", line.color = "gray", line.size = 0.01,
                        palette = "jco", legend="none",
-                       ylab="ABX error score (in %)", xlab="", caption="high-dimension models")+ ylim(5, 16) +
+                       ylab="ABX error score (in %)", xlab="", caption="high-dimension models")+ ylim(1, 11) +
   stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
   # +ggtitle(waiver(), subtitle = paste(dataset, "dataset"))
 
 ggarrange(plot_lowdim, plot_highdim, 
           ncol = 2, nrow = 1)
 
+
+
+
+
+#black and white
+compare_means(value ~ variable, data = df_reshaped, paired = TRUE)
+my_comparisons <- list( c("same", "different") )
+plot_lowdim = ggpaired(df_reshaped, x = "variable", y = "value",
+                       color = "black", line.color = "gray", line.size = 0.01,point.size=0.5,
+                       palette = "grey", legend="none", 
+                       ylab="ABX error score (in %)", xlab="", caption="low-dimension models")+ ylim(4, 16) +
+  stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
+
+compare_means(value ~ variable, data = df2_reshaped, paired = TRUE)
+my_comparisons <- list( c("same", "different") )
+plot_highdim = ggpaired(df2_reshaped, x = "variable", y = "value",
+                        color = "black", line.color = "gray", line.size = 0.01, point.size=0.5, 
+                        palette = "grey", legend="none",
+                        ylab="ABX error score (in %)", xlab="", caption="high-dimension models")+ ylim(4, 16) +
+  stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
+# +ggtitle(waiver(), subtitle = paste(dataset, "dataset"))
+
+ggarrange(plot_lowdim, plot_highdim, 
+          ncol = 2, nrow = 1)
 
 
 #------------------------------------------------------------------------------------------------------------------
