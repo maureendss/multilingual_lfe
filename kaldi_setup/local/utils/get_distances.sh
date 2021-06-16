@@ -226,7 +226,7 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ]; then
 
             "$train_cmd"  ${logdir_lda}/compute-lda.log \
                           ivector-compute-lda --dim=$lda_dim scp:${lda_train_dir}/ivector.scp \
-                          ark:${data}/${x}${feats_suffix}/utt2spk ${lda_train_dir}/lda_lang-${lda_dim}.mat
+                          ark:${data}/${x}${feats_suffix}/utt2lang ${lda_train_dir}/lda_lang-${lda_dim}.mat
         fi
 
        lda_filename="lda_lang-${lda_dim}-train_ivector"
