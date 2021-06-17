@@ -6,11 +6,11 @@ stage=0
 grad=true
 nj=50
 nj_train=50
-data=data/librispeech
+data=data/cv
 
 pitch=true
 
-exp_dir=exp_lfe
+exp_dir=exp_lfe_highdim_1h
 
 feats_suffix="" #mainly for vad and cmvn. What directly interacts with features
 exp_suffix="" #redundant with exp_dir? TODO: to change
@@ -28,8 +28,8 @@ deltas=false
 deltas_sdc=true # not compatible with deltas
 diag_only=false #if true, only train a diag ubm and not a full one. 
 
-num_gauss=128
-ivector_dim=150
+num_gauss=2048 #128
+ivector_dim=400 #150
 
 
 . ./cmd.sh
@@ -194,7 +194,9 @@ _ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}
 
                     local/utils/compute_cosine.py --distance euclidean ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type\
 }${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/langdist_euclidean.\
-txt
+                                                  txt
+
+                    local/utils/copy_langvectors.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivectors.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_ivector.txt
                 else
                     echo "Ivectors in ${ivec_dir} already exist - skipping Ivector Extraction"
 
@@ -245,7 +247,7 @@ if [ $stage -eq 6 ] || [ $stage -lt 6 ] && [ "${grad}" == "true" ]; then
 _${lda_filename}.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lda_langdist.txt
 
                     local/utils/compute_cosine.py --distance euclidean ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_${lda_filename}.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lda_langdist_euclidean.txt
-
+                    local/utils/copy_langvectors.py ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lang_${lda_filename}.ark ${exp_dir}/ivectors${exp_suffix}/ivectors_${num_gauss}_tr-${train}${feats_suffix}_ts-${iv_type}${feats_suffix}/lda_lang_ivector.txt
     done
 
 fi
