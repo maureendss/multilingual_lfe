@@ -136,7 +136,8 @@ def correl_with_perm(feat_vec, ivec, nperm=999):
 
     return r, p_value, np.sort(r_res_altonly)
 
-
+def get_feature_names(ling_type="syntax_knn"):
+    return l2v.get_features("eng", ling_type, header=True)["CODE"]
 
 if __name__ == "__main__":
 
@@ -159,7 +160,7 @@ if __name__ == "__main__":
 
     feat_vec=read_csv(args.path_featvec_csv)
     ivec = iso2_to_iso3(read_csv(args.path_ivec_csv))
-    #feat_vec=read_csv("lang_vecs/syntax_knn.csv")
+    #feat_vec=read_csv("../../lang_dist/lang_vecs/syntax_knn.csv")
     #ivec = iso2_to_iso3(read_csv("/home/maureen/Desktop/lda_ivectors_2048_tr-train_large_all-1h_ts-train_large_all-1h_lang_ivector.csv"))
 
     #if args.permutation:
@@ -169,6 +170,7 @@ if __name__ == "__main__":
     #df = create_df(feat_vec, ivec)
     #corr = pearsonr(df)
     df = create_df(feat_vec, ivec)
+
     if args.permutation:
         corr, p_value, r_res_altonly = correl_with_perm(feat_vec, ivec, nperm=args.nperm)
         print("Pearson Correlation score : ", corr, " and p.value of : ", p_value)
@@ -198,4 +200,40 @@ if __name__ == "__main__":
     if not args.no_plot:
         get_plot(df, args.plot, ivec_label=args.ivec_label, feature_label=args.feature_label)
 
+
 # python ../statistics/python/langdist_correl.py  --permutation --nperm 9999 /home/maureen/Desktop/lda_ivectors_2048_tr-train_large_all-1h_ts-train_large_all-1h_lang_ivector.csv lang_vecs/syntax_knn.csv
+feat_df = pd.DataFrame.from_dict(feat_vec, orient='index', columns=l2v.get_features("eng", "syntax_knn", header=True)["CODE"])
+featdist_df = pd.DataFrame.from_dict(compute_distances(feat_vec), orient='index')
+
+# linear LogisticRegression
+from sklearn.linear_model import LinearRegression
+reg = LinearRegression().fit(feat_df, featdist_df)
+reg.score(feat_df, featdist_df)
+coefs = pd.DataFrame(reg.coef_, columns=feat_df.columns)
+coefs.mean().abs().sort_values(ascending=False) #get the ones with bigger importatnce?
+
+
+from sklearn.feature_selection import RFE
+#rfe = RFE(reg, n_features_to_select=1, step=1)
+rfe = RFE(reg, step=1)
+rfe.fit(feat_df, featdist_df)
+rank_df = pd.DataFrame.from_dict(dict(zip(feat_df.columns, rfe.ranking_)), orient='index')
+sorted(list(zip(feat_df.columns, rfe.ranking_)), key=lambda x: abs(x[1]))
+
+
+#if want to choose only the features ferom RFE:
+X_RFE = feat_df[feat_df.columns[rfe.support_]]
+reg = LinearRegression().fit(X_RFE, featdist_df)
+reg.score(X_RFE, featdist_df)
+
+# #random forest
+#from sklearn.ensemble import RandomForestRegressor
+#model = RandomForestRegressor()
+#model.fit(feat_df, featdist_df)
+#model.score(feat_df, featdist_df)
+
+#multioutput
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.linear_model import Ridge
+clf = MultiOutputRegressor(Ridge(random_state=123)).fit(feat_df, featdist_df)
+clf.score(feat_df, featdist_df)
