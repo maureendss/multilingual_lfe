@@ -34,9 +34,9 @@ def iso2_to_iso3(dic):
     return new_dic
 
 
-def pearsonr(df):
+def pearsonr(a,b):
 
-    pearson = np.corrcoef(df['ivector'], df['feature'])
+    pearson = np.corrcoef(a, b)
     return pearson[0,1]
 
 
@@ -114,7 +114,9 @@ def random_dict_shuffle(d):
 
 def correl_with_perm(feat_vec, ivec, nperm=999):
 
-    r = pearsonr(create_df(feat_vec, ivec))
+    df = create_df(feat_vec, ivec)
+    r = pearsonr(df['ivector'], df['feature'])
+
 
     r_res = []
     for x in tqdm(range(nperm)):
@@ -122,7 +124,8 @@ def correl_with_perm(feat_vec, ivec, nperm=999):
         #    print("iteration #", x)
         feat_vec_perm=random_dict_shuffle(feat_vec)
         ivec_perm=random_dict_shuffle(ivec)
-        r_res.append(pearsonr(create_df(feat_vec_perm, ivec_perm)))
+        tmp_df = create_df(feat_vec_perm, ivec_perm)
+        r_res.append(pearsonr(df['ivector'], df['feature']))
 
     r_res_altonly = r_res #only so that we can plot distrib later
     r_res.append(r)
@@ -148,7 +151,7 @@ if __name__ == "__main__":
     parser.add_argument("path_ivec_csv", help="/home/maureen/Desktop/lda_ivectors_2048_tr-train_large_all-1h_ts-train_large_all-1h_lang_ivector.csv") #syntax_knn
     parser.add_argument("path_featvec_csv", help="lang_vecs/syntax_knn.csv")
     parser.add_argument("--permutation", action='store_true')
-    parser.add_argument("--nperm", type=int, default=999)
+    parser.add_argument("--nperm", type=int, default=9999)
     parser.add_argument("--no_plot", action='store_true')
     parser.add_argument("--plot", default="corr.png")
     parser.add_argument("--ivec_label", default="Ivector Euc Distance (LDA)")
@@ -194,7 +197,7 @@ if __name__ == "__main__":
 
 
     else:
-        corr = pearsonr(df)
+        corr = pearsonr(df['ivector'], df['feature'])
         print("Pearson Correlation score : ", corr)
 
     if not args.no_plot:
@@ -202,29 +205,28 @@ if __name__ == "__main__":
 
 
 # python ../statistics/python/langdist_correl.py  --permutation --nperm 9999 /home/maureen/Desktop/lda_ivectors_2048_tr-train_large_all-1h_ts-train_large_all-1h_lang_ivector.csv lang_vecs/syntax_knn.csv
-feat_df = pd.DataFrame.from_dict(feat_vec, orient='index', columns=l2v.get_features("eng", "syntax_knn", header=True)["CODE"])
-featdist_df = pd.DataFrame.from_dict(compute_distances(feat_vec), orient='index')
+#feat_df = pd.DataFrame.from_dict(feat_vec, orient='index', columns=l2v.get_features("eng", "syntax_knn", header=True)["CODE"])
+#featdist_df = pd.DataFrame.from_dict(compute_distances(feat_vec), orient='index')
 
 # linear LogisticRegression
-from sklearn.linear_model import LinearRegression
-reg = LinearRegression().fit(feat_df, featdist_df)
-reg.score(feat_df, featdist_df)
-coefs = pd.DataFrame(reg.coef_, columns=feat_df.columns)
-coefs.mean().abs().sort_values(ascending=False) #get the ones with bigger importatnce?
+#from sklearn.linear_model import LinearRegression
+#reg = LinearRegression().fit(feat_df, featdist_df)
+#reg.score(feat_df, featdist_df)
+#coefs = pd.DataFrame(reg.coef_, columns=feat_df.columns)
+#for more see https://towardsdatascience.com/feature-selection-with-pandas-e3690ad8504b
 
-
-from sklearn.feature_selection import RFE
+#from sklearn.feature_selection import RFE
 #rfe = RFE(reg, n_features_to_select=1, step=1)
-rfe = RFE(reg, step=1)
-rfe.fit(feat_df, featdist_df)
-rank_df = pd.DataFrame.from_dict(dict(zip(feat_df.columns, rfe.ranking_)), orient='index')
-sorted(list(zip(feat_df.columns, rfe.ranking_)), key=lambda x: abs(x[1]))
+#rfe = RFE(reg, step=1)
+#rfe.fit(feat_df, featdist_df) #if no specify, takes one.
+#rank_df = pd.DataFrame.from_dict(dict(zip(feat_df.columns, rfe.ranking_)), orient='index')
+#sorted(list(zip(feat_df.columns, rfe.ranking_)), key=lambda x: abs(x[1]))
 
 
 #if want to choose only the features ferom RFE:
-X_RFE = feat_df[feat_df.columns[rfe.support_]]
-reg = LinearRegression().fit(X_RFE, featdist_df)
-reg.score(X_RFE, featdist_df)
+#X_RFE = feat_df[feat_df.columns[rfe.support_]]
+#reg_RFE = LinearRegression().fit(X_RFE, featdist_df)
+#reg_RFE.score(X_RFE, featdist_df)
 
 # #random forest
 #from sklearn.ensemble import RandomForestRegressor
@@ -233,7 +235,7 @@ reg.score(X_RFE, featdist_df)
 #model.score(feat_df, featdist_df)
 
 #multioutput
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.linear_model import Ridge
-clf = MultiOutputRegressor(Ridge(random_state=123)).fit(feat_df, featdist_df)
-clf.score(feat_df, featdist_df)
+#from sklearn.multioutput import MultiOutputRegressor
+#from sklearn.linear_model import Ridge
+#clf = MultiOutputRegressor(Ridge(random_state=123)).fit(feat_df, featdist_df)
+#clf.score(feat_df, featdist_df)
