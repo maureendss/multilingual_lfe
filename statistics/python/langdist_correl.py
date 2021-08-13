@@ -68,10 +68,10 @@ def reduce_langpair_dic(d):
 
 
 
-def create_df(feat_vec, ivec):
+def create_df(feat_vec, ivec, ivec_dist="euclidean"):
 
     featvec2dist = compute_distances(feat_vec)
-    ivec2dist = compute_distances(ivec, dist = "euclidean")
+    ivec2dist = compute_distances(ivec, ivec_dist)
 
     feat = reduce_langpair_dic(featvec2dist)
     ivec = reduce_langpair_dic(ivec2dist)
@@ -112,9 +112,9 @@ def random_dict_shuffle(d):
     return dict(zip(d, shuffled))
 
 
-def correl_with_perm(feat_vec, ivec, nperm=999):
+def correl_with_perm(feat_vec, ivec, nperm=999, ivec_dist="euclidean"):
 
-    df = create_df(feat_vec, ivec)
+    df = create_df(feat_vec, ivec, ivec_dist=ivec_dist)
     r = pearsonr(df['ivector'], df['feature'])
 
 
@@ -124,10 +124,10 @@ def correl_with_perm(feat_vec, ivec, nperm=999):
         #    print("iteration #", x)
         feat_vec_perm=random_dict_shuffle(feat_vec)
         ivec_perm=random_dict_shuffle(ivec)
-        tmp_df = create_df(feat_vec_perm, ivec_perm)
-        r_res.append(pearsonr(df['ivector'], df['feature']))
+        tmp_df = create_df(feat_vec_perm, ivec_perm, ivec_dist=ivec_dist)
+        r_res.append(pearsonr(tmp_df['ivector'], tmp_df['feature']))
 
-    r_res_altonly = r_res #only so that we can plot distrib later
+    r_res_altonly = copy.deepcopy(r_res) #only so that we can plot distrib later
     r_res.append(r)
 
     #calculate your p value by comparing them to your potential correlations.
@@ -138,6 +138,40 @@ def correl_with_perm(feat_vec, ivec, nperm=999):
     p_value = np.mean([i>=r for i in abs_r_res])
 
     return r, p_value, np.sort(r_res_altonly)
+
+
+def correl_with_perm_and_bootstrap(feat_vec, ivec, nperm=999, ivec_dist="euclidean"):
+
+    df = create_df(feat_vec, ivec, ivec_dist=ivec_dist)
+
+
+    r_res = []
+    r_boot = []
+    for x in tqdm(range(nperm)):
+        #if x%100 == 0:
+        #    print("iteration #", x)
+        feat_vec_perm=random_dict_shuffle(feat_vec)
+        ivec_perm=random_dict_shuffle(ivec)
+
+        df_bootstrap = df.sample(frac=1, replace=True)
+        r_boot.append(pearsonr(df_bootstrap['ivector'], df_bootstrap['feature']))
+
+        tmp_df = create_df(feat_vec_perm, ivec_perm, ivec_dist=ivec_dist)
+        r_res.append(pearsonr(tmp_df['ivector'], tmp_df['feature']))
+
+    r_res_altonly = copy.deepcopy(r_res)
+    r_boot_altonly = copy.deepcopy(r_boot) #only so that we can plot distrib later
+    r = np.mean(r_boot_altonly)
+    #r_res.append(r)
+
+    #calculate your p value by comparing them to your potential correlations.
+    # see https://www.reddit.com/r/AskStatistics/comments/a47av6/permutation_test_with_pearson_correlation/
+    #If you get 1e-5 out, that means none of the resampled correlations were as big (in absolute terms) as the sample one; in that situation it's an upper bound on the p-value.
+
+    #abs_r_res = list(map(abs, r_res))
+    #p_value = np.mean([i>=r for i in abs_r_res])
+    #return r, p_value, np.sort(r_res_altonly)
+    return r, np.sort(r_res_altonly), np.sort(r_boot_altonly)
 
 def get_feature_names(ling_type="syntax_knn"):
     return l2v.get_features("eng", ling_type, header=True)["CODE"]
