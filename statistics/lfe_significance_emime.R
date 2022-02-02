@@ -1,7 +1,4 @@
 #!/usr/bin/env Rscript
-
-library(reshape2)
-library(forcats)
 shhh <- suppressPackageStartupMessages # It's a library, so shhh!
 
 
@@ -16,7 +13,8 @@ shhh(library(rstatix))
 
 shhh(library(BSDA))
 shhh(library(coin))
-
+library(reshape2)
+library(forcats)
 
 
 #do on all possible speaker pair. 
@@ -30,24 +28,20 @@ lang_A=args[1]
 lang_B=args[2]
 print(args)
 
-#lang_A="en"
-#lang_B="it"
+#lang_A="French"
+#lang_B="Finnish"
 
-path="/home/maureen/work/projects/multilingual_lfe/local/abx/lfe_cv/"
-csv="data_on_spk_by_lang.csv"
+path="/home/maureen/work/projects/multilingual_lfe/local/abx/lfe/"
 numgauss=128
 
+#path="/home/maureen/work/projects/multilingual_lfe/local/abx/lfe_highdim/"
+#numgauss=2048
 
-path="/home/maureen/work/projects/multilingual_lfe/local/abx/lfe_cv_highdim/"
-path="/Users/seyssel/Work/repos/multilingual_lfe/local/abx/lfe_cv_highdim/"
 
-csv="data_on_spk_by_lang.csv"
-numgauss=2048
-
-same_a=paste(path, "ivector_", numgauss,"_tr-",lang_A,"_train-15h-60spk_ts-",lang_A,"_test-0h-20spk/", csv, sep="")
-same_b=paste(path, "ivector_", numgauss,"_tr-",lang_B,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep="")
-diff_a=paste(path, "ivector_", numgauss,"_tr-",lang_A,"_train-15h-60spk_ts-",lang_B,"_test-0h-20spk/", csv, sep="")
-diff_b=paste(path, "ivector_", numgauss,"_tr-",lang_B,"_train-15h-60spk_ts-",lang_A,"_test-0h-20spk/", csv, sep="")
+same_a=paste(path, "ivector_", numgauss,"_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+same_b=paste(path, "ivector_", numgauss,"_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+diff_a=paste(path, "ivector_", numgauss,"_tr-train_",lang_A,"_10h_10spk_ts-test_",lang_B,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
+diff_b=paste(path, "ivector_", numgauss,"_tr-train_",lang_B,"_10h_10spk_ts-test_",lang_A,"_0.5h_10spk/data_on_spk_by_lang.csv", sep="")
 
 same_csv <- rbind(read.csv(same_a, sep='\t'), read.csv(same_b, sep='\t'))
 different_csv<- rbind(read.csv(diff_a, sep='\t'), read.csv(diff_b, sep='\t'))
@@ -111,20 +105,16 @@ d2$id = as_factor(d2$id)
 
 res=oneway_test(value ~ variable | id,
                 data = d2, alternative="two.sided", distribution="approximate"(nresample=9999))
-print(paste('The p.value for the (two tailed) one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
+print(paste('The p.value for the two tailed one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',pvalue(res)))
 
-print(paste('The Z.value for the (two tailed) one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling is',statistic(res)))
-print(paste('Significant w Bonferroni corr: ',pvalue(res)<= 0.0013889))
-print(paste('Significant w Bonferroni corr ** : ',pvalue(res)<= 0.00013889))
-
-#res=oneway_test(value ~ variable | id,
-               # data = d2, alternative="two.sided", distribution="approximate"(nresample=99), weights=~n)
-#print(paste('The p.value for the (two tailed) one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and weighted is',pvalue(res)))
+res=oneway_test(value ~ variable | id,
+                data = d2, alternative="two.sided", distribution="approximate"(nresample=9999))
+print(paste('The p.value for the two tailed  one-way Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling and weighted is',pvalue(res)))
 
 
 #If want asymptotic : 
-#res=oneway_test(value ~ variable | id,
-               # data = d2, alternative="two.sided")
+res=oneway_test(value ~ variable | id,
+                data = d2, alternative="two.sided")
 
 #Can weigh per weight
 

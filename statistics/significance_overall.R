@@ -29,38 +29,49 @@ if (length(args)==1) {
 
 lang=""
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all.csv")
+df <- read.csv("/Users/seyssel/Work/repos/multilingual_lfe/statistics/lfe_all.csv")
 df2 <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_highdim.csv")
+df2 <- read.csv("/Users/seyssel/Work/repos/multilingual_lfe/statistics/lfe_all_highdim.csv")
 
 dataset="Librivox"
 
 df <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_cv.csv")
+df <- read.csv("/Users/seyssel/Work/repos/multilingual_lfe/statistics/lfe_all_cv.csv")
+
 df2 <- read.csv("~/work/projects/multilingual_lfe/statistics/lfe_all_cv_highdim.csv")
+df2 <- read.csv("/Users/seyssel/Work/repos/multilingual_lfe/statistics/lfe_all_cv_highdim.csv")
+
+df <- df2
+
 
 dataset="CommonVoice"
 
 df <- df[grep(lang, df$langpair),]
 df2 <- df2[grep(lang, df$langpair),]
 
-same=df[,'same']
-different=df[,'different']
+colnames(df)[which(names(df) == "same")] <- "familiar"
+colnames(df)[which(names(df) == "different")] <- "unfamiliar"
+
+familiar=df[,'familiar']
+unfamiliar=df[,'unfamiliar']
 
 #Frol https://cran.r-project.org/web/packages/distributions3/vignettes/two-sample-z-test.html
-qqnorm(same)
-qqline(same)
+qqnorm(familiar)
+qqline(familiar)
 
-qqnorm(different)
-qqline(different)
+qqnorm(unfamiliar)
+qqline(unfamiliar)
 
 
 test_results <- data.frame(
-  score = c(same, different),
+  score = c(familiar, unfamiliar),
   condition = c(
-    rep("same", length(same)),
-    rep("different", length(different))
+    rep("familiar", length(familiar)),
+    rep("unfamiliar", length(unfamiliar))
   )
 )
 
-ggplot(test_results, aes(x = factor(condition, level=c('same','different')), y = score, color = condition)) +
+ggplot(test_results, aes(x = factor(condition, level=c('familiar','unfamiliar')), y = score, color = condition)) +
   geom_boxplot() +
   geom_jitter() +
   stat_summary(fun.y="mean", color='black') +
@@ -69,28 +80,28 @@ ggplot(test_results, aes(x = factor(condition, level=c('same','different')), y =
   theme(legend.position = "none")
 
 
-ggpaired(df, cond1="same", cond2= "different",
+ggpaired(df, cond1="familiar", cond2= "unfamiliar",
          ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05) 
 
-ggpaired(df2, cond1="same", cond2= "different",
+ggpaired(df2, cond1="familiar", cond2= "unfamiliar",
          ylab = "ABX score (in %)", xlab = "Condition", line.size=0.05) 
 
 
-res <- wilcox.test(df$same, df$different, paired = TRUE, alternative="less") #less because here we use the ABX error rate
+res <- wilcox.test(df$familiar, df$unfamiliar, paired = TRUE, alternative="less") #less because here we use the ABX error rate
 print(paste('The p.value for the Wilcoxon signed rank exact test is',res$p.value))
 
 
 
-res <- wilcox.exact(df$same,df$different, paired=TRUE, conf.int=TRUE, exact=TRUE, alternative="less")
+res <- wilcox.exact(df$familiar,df$unfamiliar, paired=TRUE, conf.int=TRUE, exact=TRUE, alternative="less")
 print(paste('The p.value for the EXACT Wilcoxon signed rank exact test is',res$p.value))
 
 
 #Approximative Two-Sample Fisher-Pitman Permutation Test with Monte-Carlo sampling )
-#d2 <- reshape2::melt(df, id.vars=c("langpair","lfe","significant"),measure.vars = c("same","different"))
-df_reshaped <- reshape2::melt(df, id.vars=c("langpair","lfe"),measure.vars = c("same","different"))
-df2_reshaped <- reshape2::melt(df2, id.vars=c("langpair","lfe"),measure.vars = c("same","different"))
+#d2 <- reshape2::melt(df, id.vars=c("langpair","lfe","significant"),measure.vars = c("familiar","unfamiliar"))
+df_reshaped <- reshape2::melt(df, id.vars=c("langpair","lfe"),measure.vars = c("familiar","unfamiliar"))
+df2_reshaped <- reshape2::melt(df2, id.vars=c("langpair","lfe"),measure.vars = c("familiar","unfamiliar"))
 
-# The cool one is below. Careful, not exactky right comparisonbs as here no permutation, ensure that the same sig scores sith permutation? 
+# The cool one is below. Careful, not exactky right comparisonbs as here no permutation, ensure that the familiar sig scores sith permutation? 
 #------------------------------------------------------------------------------------------------------------------
 
 
@@ -100,7 +111,7 @@ df2_reshaped <- reshape2::melt(df2, id.vars=c("langpair","lfe"),measure.vars = c
 
 # line.size = 0.02 if want bigger
 compare_means(value ~ variable, data = df_reshaped, paired = TRUE)
-my_comparisons <- list( c("same", "different") )
+my_comparisons <- list( c("familiar", "unfamiliar") )
 plot_lowdim = ggpaired(df_reshaped, x = "variable", y = "value",
          color = "variable", line.color = "gray", line.size = 0.01,
          palette = "jco", legend="none", 
@@ -108,7 +119,7 @@ plot_lowdim = ggpaired(df_reshaped, x = "variable", y = "value",
   stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
 
 compare_means(value ~ variable, data = df2_reshaped, paired = TRUE)
-my_comparisons <- list( c("same", "different") )
+my_comparisons <- list( c("familiar", "unfamiliar") )
 plot_highdim = ggpaired(df2_reshaped, x = "variable", y = "value",
                        color = "variable", line.color = "gray", line.size = 0.01,
                        palette = "jco", legend="none",
@@ -125,7 +136,7 @@ ggarrange(plot_lowdim, plot_highdim,
 
 #black and white
 compare_means(value ~ variable, data = df_reshaped, paired = TRUE)
-my_comparisons <- list( c("same", "different") )
+my_comparisons <- list( c("familiar", "unfamiliar") )
 plot_lowdim = ggpaired(df_reshaped, x = "variable", y = "value",
                        color = "black", line.color = "gray", line.size = 0.01,point.size=0.5,
                        palette = "grey", legend="none", 
@@ -133,7 +144,7 @@ plot_lowdim = ggpaired(df_reshaped, x = "variable", y = "value",
   stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=5)
 
 compare_means(value ~ variable, data = df2_reshaped, paired = TRUE)
-my_comparisons <- list( c("same", "different") )
+my_comparisons <- list( c("familiar", "unfamiliar") )
 plot_highdim = ggpaired(df2_reshaped, x = "variable", y = "value",
                         color = "black", line.color = "gray", line.size = 0.01, point.size=0.5, 
                         palette = "grey", legend="none",
@@ -144,6 +155,19 @@ plot_highdim = ggpaired(df2_reshaped, x = "variable", y = "value",
 ggarrange(plot_lowdim, plot_highdim, 
           ncol = 2, nrow = 1)
 
+
+#plot alone
+
+compare_means(value ~ variable, data = df_reshaped, paired = TRUE)
+my_comparisons <- list( c("familiar", "unfamiliar") )
+ggpaired(df_reshaped, x = "variable", y = "value",
+         color = "black", line.color = "gray", line.size = 0.1,point.size=0.5,
+         palette = "grey", legend="none", 
+         ylab="ABX error score (in %)", xlab="condition")+ ylim(1,11) +
+  theme(text = element_text(size = 18))+
+  stat_compare_means(paired = TRUE, comparisons=my_comparisons, label =  "p.signif", label.x = 1.5, size=8,
+                     symnum.args = list(cutpoints = c(0,0.0001,0.001,0.01,0.05,1),symbols
+                                        = c("*","*","*","*","ns")))
 
 #------------------------------------------------------------------------------------------------------------------
 
@@ -161,3 +185,7 @@ print(paste('The p.value for the Two-Sample Fisher-Pitman Permutation Test with 
 # symmetry_test(value ~ variable | langpair,
               # data = d2, alternative="less", distribution="approximate"(nresample=99999))
 
+
+
+
+ 
